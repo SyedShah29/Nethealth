@@ -11,12 +11,15 @@ __pycache__/
 .ruff_cache/
 .venv/
 venv/
+.coverage
+htmlcov/
 
 # Node
 node_modules/
 .next/
 dist/
 coverage/
+*.tsbuildinfo
 
 # Logs
 *.log
@@ -38,6 +41,9 @@ secrets/
 # Local databases
 *.sqlite
 *.db
+
+# Docker Desktop local VM state
+/DockerDesktopWSL/
 
 # Temporary
 tmp/

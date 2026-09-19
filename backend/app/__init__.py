@@ -1,0 +1,1 @@
+"""NetHealth backend application."""

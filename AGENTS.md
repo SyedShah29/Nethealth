@@ -158,6 +158,27 @@ Do not implement router, switch, OLT, ONU, or other network
 
 configuration capabilities unless explicitly approved.
 
+\## Local development network exposure
+
+For all local development and Docker work:
+
+\- Host-published services must bind explicitly to `127.0.0.1`.
+
+\- Do not use unspecified host bindings, `0.0.0.0`, or `::` for host ports.
+
+\- PostgreSQL/TimescaleDB and Redis must normally remain internal-only.
+
+\- Do not expose the Docker daemon or mount `/var/run/docker.sock`.
+
+\- Do not use privileged containers, host networking, or broad device mounts
+without explicit user approval and a decision entry.
+
+\- Use private Docker networks for internal services and least-privilege
+database roles for normal application runtime.
+
+\- Inspect Compose files, Dockerfiles, startup commands, and environment
+configuration for accidental exposure before completing container work.
+
 
 
 \## Security

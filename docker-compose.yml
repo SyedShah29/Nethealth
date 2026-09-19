@@ -1,0 +1,195 @@
+name: nethealth
+
+services:
+  postgres:
+    image: timescale/timescaledb:2.19.3-pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-nethealth_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD in .env}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-nethealth_migrator}
+      POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:?Set POSTGRES_MIGRATION_PASSWORD in .env}
+      DATABASE_USER: ${DATABASE_USER:-nethealth_app}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+    entrypoint:
+      - sh
+      - -c
+      - exec docker-entrypoint.sh postgres -c "listen_addresses=$$(hostname -i)"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - private
+
+  redis:
+    image: redis:7.4.2-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    entrypoint:
+      - sh
+      - -c
+      - exec docker-entrypoint.sh redis-server --bind "$$(hostname -i)" --appendonly yes --requirepass "$$REDIS_PASSWORD"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli -h redis ping | grep PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - private
+
+  migrate:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SERVICE_NAME: nethealth-migrate
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      DATABASE_USER: ${POSTGRES_MIGRATION_USER:-nethealth_migrator}
+      DATABASE_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:?Set POSTGRES_MIGRATION_PASSWORD in .env}
+      DATABASE_POOL_SIZE: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    environment: &backend-environment
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SERVICE_NAME: ${SERVICE_NAME:-nethealth-api}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      DATABASE_USER: ${DATABASE_USER:-nethealth_app}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-5}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://127.0.0.1:3000"]}
+    command: ["sh", "-c", "set -- $$(hostname -i); exec uvicorn app.main:app --host \"$$1\" --port 8000"]
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://backend:8000/api/health', timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - edge
+      - private
+
+  worker:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      <<: *backend-environment
+      SERVICE_NAME: nethealth-worker
+    command: ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=INFO"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:8000/api}
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:8000/api}
+    command: ["sh", "-c", "HOSTNAME=\"$$(hostname -i)\" exec node server.js"]
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://frontend:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - edge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  edge:
+    driver: bridge
+  private:
+    driver: bridge
+    internal: true

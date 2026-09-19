@@ -160,3 +160,20 @@ Initial deployment:
 
 \- frontend
 
+\## Phase 0 container networking
+
+The local Compose stack uses separate edge and private bridge networks.
+
+Only the frontend and backend API publish host ports, and both publish to
+`127.0.0.1` only. PostgreSQL/TimescaleDB and Redis publish no host ports.
+The database, cache, migration job, backend, and worker communicate over an
+internal Docker network.
+
+The database bootstrap account is limited to initialization. Alembic uses a
+separate non-superuser migration role, while the backend and worker use a
+least-privilege application role. PostgreSQL host authentication uses SCRAM.
+
+No service mounts the Docker socket. Application containers run as non-root,
+drop Linux capabilities, prevent privilege escalation, and use read-only root
+filesystems with temporary storage where practical.
+
