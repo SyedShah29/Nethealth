@@ -172,6 +172,54 @@ async def test_snmp_table_walk_discovers_interfaces() -> None:
 
 
 @pytest.mark.asyncio
+async def test_configured_onu_and_subscriber_tables_are_normalized() -> None:
+    onu_id_oid = "1.2.3.1"
+    subscriber_id_oid = "1.2.4.1"
+
+    async def query(oid: str) -> object | None:
+        return {
+            "1.2.3.2.7": -19.5,
+            "1.2.3.3.7": 1,
+            "1.2.4.2.9": 1,
+            "1.2.4.3.9": 600,
+        }.get(oid)
+
+    async def walk(oid: str) -> list[tuple[str, object]]:
+        if oid == onu_id_oid:
+            return [(f"{onu_id_oid}.7", "ONU-007")]
+        if oid == subscriber_id_oid:
+            return [(f"{subscriber_id_oid}.9", "SUB-009")]
+        return []
+
+    collector = SnmpCollector(
+        uuid4(),
+        SnmpProfile(
+            username="monitor",
+            oid_overrides={
+                "onu_identifier": onu_id_oid,
+                "onu_rx_power": "1.2.3.2",
+                "onu_status": "1.2.3.3",
+                "subscriber_identifier": subscriber_id_oid,
+                "subscriber_session_state": "1.2.4.2",
+                "subscriber_session_uptime": "1.2.4.3",
+            },
+        ),
+        query,
+        walk=walk,
+    )
+
+    optical = await collector.collect_optical_metrics()
+    sessions = await collector.collect_subscriber_sessions()
+    assert {(item.metric, item.entity_id) for item in optical} == {
+        ("rx_optical_power", "ONU-007"),
+        ("online_state", "ONU-007"),
+    }
+    assert sessions == [
+        {"subscriber_id": "SUB-009", "session_state": 1, "session_uptime": 600}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_worker_service_executes_assignments() -> None:
     saved: list[str] = []
 

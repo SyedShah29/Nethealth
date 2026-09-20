@@ -22,8 +22,10 @@ from app.collectors.vendors.zte import ZteAdapter
 from app.core.config import Settings, get_settings
 from app.db.session import async_session_factory
 from app.models.collector import CollectorStatusRecord
-from app.models.inventory import CollectorAssignment, CollectorProfile, Device
+from app.models.inventory import CollectorAssignment, CollectorProfile, Device, Interface
 from app.repositories.collector import CollectorStatusRepository
+from app.repositories.metrics import MetricRepository
+from app.services.metrics import MetricService
 
 logger = structlog.get_logger()
 
@@ -106,13 +108,37 @@ async def poll_assignment(assignment_id: UUID, worker: str | None = None) -> dic
         status = _status_from_record(existing, profile.failure_threshold)
         try:
             collector = build_collector(device, profile, settings)
+            collected_at = datetime.now(UTC)
             health = await collector.collect_device_health()
+            interface_readings = []
+            optical_readings = []
+            environment_readings = []
+            subscriber_sessions: list[dict[str, object]] = []
+            if health.reachable:
+                interface_readings = await collector.collect_interfaces()
+                optical_readings = await collector.collect_optical_metrics()
+                environment_readings = await collector.collect_environment()
+                subscriber_sessions = await collector.collect_subscriber_sessions()
+            inventory_interfaces = {
+                interface.name: interface
+                for interface in (
+                    await session.execute(
+                        select(Interface).where(Interface.device_id == device.id)
+                    )
+                ).scalars()
+            }
+            await MetricService(MetricRepository(session)).persist_collection(
+                timestamp=collected_at,
+                source=profile.collector_type,
+                health=health,
+                interfaces=interface_readings,
+                inventory_interfaces=inventory_interfaces,
+                optical=optical_readings,
+                environment=environment_readings,
+                subscriber_sessions=subscriber_sessions,
+            )
             if not health.reachable:
                 raise RuntimeError("Device is unreachable.")
-            await collector.collect_interfaces()
-            await collector.collect_optical_metrics()
-            await collector.collect_environment()
-            await collector.collect_subscriber_sessions()
             status.success(health.latency_ms)
             result = "success"
         except Exception as exc:

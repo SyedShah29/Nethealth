@@ -207,5 +207,12 @@ one target failure cannot terminate the worker.
 The worker joins a dedicated un-published collector bridge for outbound access
 to explicitly configured management targets. The API, scheduler, database, and
 Redis do not join that network. The syslog receiver publishes UDP only on the
-host loopback interface during local development. Metric sample persistence is
-reserved for Phase 4.
+host loopback interface during local development.
+
+Phase 4 collector results flow through the metrics service into a TimescaleDB
+hypertable. The service normalizes device, interface, ONU, and subscriber
+observations into one metric envelope. Interface rates are calculated from
+successive counter samples; raw counters remain available for traceability.
+TimescaleDB continuous aggregates provide 5-minute, hourly, and daily query
+resolutions. The API can only read metrics and requires `metrics:read`; only
+collector workers write operational samples.

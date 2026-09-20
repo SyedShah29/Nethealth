@@ -164,3 +164,29 @@ stored here; time-series persistence begins in Phase 4.
 
 Collector credentials are not database fields. A profile stores only a key
 that resolves to secret environment configuration inside collector workers.
+
+## Phase 4 metrics platform
+
+`MetricSample` is a TimescaleDB hypertable partitioned by `timestamp`. Every
+sample uses the shared envelope:
+
+- `timestamp`
+- `entity_type`: `DEVICE`, `INTERFACE`, `ONU`, or `SUBSCRIBER`
+- `entity_id`: a UUID string or stable collector-side identifier
+- `metric_name`
+- numeric `value`
+- optional `unit`
+- `source`
+- JSON `tags` containing non-secret dimensions only
+
+The primary key contains both the sample UUID and partition timestamp, as
+required for TimescaleDB hypertables. The entity/metric/time index supports
+bounded time-series lookup. Entity IDs intentionally have no foreign key so
+ONU and subscriber observations can be retained before their Phase 5+ domain
+records exist.
+
+Continuous aggregates materialize 5-minute, hourly, and daily buckets with
+average, minimum, maximum, sum, and sample count. Starting retention is 30 days
+for raw samples, 180 days for 5-minute aggregates, 730 days for hourly
+aggregates, and unlimited for daily aggregates. The first three durations are
+configurable through `METRICS_*_RETENTION_DAYS` when the migration is applied.

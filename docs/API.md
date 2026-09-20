@@ -106,3 +106,24 @@ optionally filtered by `device_id`.
 The administrator role cannot lose `users:manage`, `roles:manage`, or
 `audit:read`, preventing configuration from removing all administrative access.
 Role changes are audited.
+
+## Phase 4 metrics
+
+`GET /api/metrics` requires `metrics:read` and a bounded half-open time window
+using the `start` and `end` query parameters. Optional filters are
+`entity_type`, `entity_id`, `metric_name`, and `source`. `limit` defaults to
+1,000 and is capped at 10,000.
+
+The `resolution` parameter accepts:
+
+- `raw` for individual metric envelopes
+- `5m` for 5-minute aggregates
+- `1h` for hourly aggregates
+- `1d` for daily aggregates
+
+Aggregate responses contain the bucket and metric dimensions plus
+`value_avg`, `value_min`, `value_max`, `value_sum`, and `sample_count`. The API
+has no metric write endpoint; operational samples are written only by collector
+workers. Invalid or reversed time windows return `INVALID_TIME_RANGE` with HTTP
+422. Credentials and infrastructure management addresses are never metric tags
+or response fields.

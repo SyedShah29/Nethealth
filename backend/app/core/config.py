@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     syslog_bind_host: str = "127.0.0.1"
     syslog_port: int = Field(default=5514, ge=1024, le=65535)
 
+    metrics_raw_retention_days: int = Field(default=30, ge=1)
+    metrics_five_minute_retention_days: int = Field(default=180, ge=1)
+    metrics_hourly_retention_days: int = Field(default=730, ge=1)
+
     @property
     def database_url(self) -> str:
         password = quote_plus(self.database_password.get_secret_value())

@@ -137,9 +137,60 @@ class SnmpCollector(DeviceCollector):
                         unit,
                     )
                 )
+        onu_entities = await self._walk_entities("onu_identifier")
+        onu_metrics = {
+            "onu_rx_power": ("rx_optical_power", "dBm"),
+            "onu_tx_power": ("tx_optical_power", "dBm"),
+            "onu_temperature": ("temperature", "celsius"),
+            "onu_voltage": ("voltage", "volts"),
+            "onu_status": ("online_state", "state"),
+            "onu_distance": ("distance", "meters"),
+        }
+        for suffix, entity_id in onu_entities:
+            for oid_key, (metric, unit) in onu_metrics.items():
+                oid_base = self.oids.get(oid_key)
+                if oid_base is None:
+                    continue
+                raw_value = await self._query_oid(f"{oid_base}.{suffix}")
+                value = (
+                    _online_state(raw_value)
+                    if oid_key == "onu_status"
+                    else _float(raw_value)
+                )
+                readings.append(
+                    OpticalMetric(
+                        self.device_id,
+                        f"onu:{suffix}",
+                        metric,
+                        value,
+                        unit,
+                        entity_type="ONU",
+                        entity_id=entity_id,
+                    )
+                )
         return readings
 
     async def collect_subscriber_sessions(self) -> list[dict[str, object]]:
+        subscriber_entities = await self._walk_entities("subscriber_identifier")
+        if subscriber_entities:
+            metric_oids = {
+                "session_state": "subscriber_session_state",
+                "session_uptime": "subscriber_session_uptime",
+                "download_rate": "subscriber_download_rate",
+                "upload_rate": "subscriber_upload_rate",
+                "disconnect_events": "subscriber_disconnect_events",
+            }
+            sessions: list[dict[str, object]] = []
+            for suffix, entity_id in subscriber_entities:
+                session: dict[str, object] = {"subscriber_id": entity_id}
+                for metric, oid_key in metric_oids.items():
+                    oid_base = self.oids.get(oid_key)
+                    if oid_base is not None:
+                        session[metric] = _int(
+                            await self._query_oid(f"{oid_base}.{suffix}")
+                        )
+                sessions.append(session)
+            return sessions
         oid = self.oids.get("subscriber_sessions")
         if oid is None:
             return []
@@ -148,6 +199,17 @@ class SnmpCollector(DeviceCollector):
                 "device_id": str(self.device_id),
                 "active_sessions": _int(await self._query_oid(oid)),
             }
+        ]
+
+    async def _walk_entities(self, oid_key: str) -> list[tuple[str, str]]:
+        oid_base = self.oids.get(oid_key)
+        if oid_base is None or self._walk is None:
+            return []
+        rows = await self._walk(oid_base)
+        return [
+            (oid.removeprefix(f"{oid_base}."), str(value))
+            for oid, value in rows
+            if oid.startswith(f"{oid_base}.")
         ]
 
     async def _required_query(self, metric: str, default_oid: str) -> object | None:
@@ -194,6 +256,18 @@ def _interface_status(value: object | None) -> str | None:
     if parsed is None:
         return None
     return {1: "UP", 2: "DOWN", 3: "TESTING"}.get(parsed, "UNKNOWN")
+
+
+def _online_state(value: object | None) -> float | None:
+    parsed = _int(value)
+    if parsed is not None:
+        return 1.0 if parsed == 1 else 0.0
+    normalized = str(value).strip().casefold() if value is not None else ""
+    if normalized in {"online", "up", "active"}:
+        return 1.0
+    if normalized in {"offline", "down", "inactive"}:
+        return 0.0
+    return None
 
 
 def _timeticks_seconds(value: object | None) -> int | None:

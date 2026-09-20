@@ -31,6 +31,8 @@ class OpticalMetric:
     metric: str
     value: float | None
     unit: str | None
+    entity_type: str = "INTERFACE"
+    entity_id: str | None = None
 
 @dataclass(frozen=True, slots=True)
 class EnvironmentReading:

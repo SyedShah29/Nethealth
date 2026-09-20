@@ -12,11 +12,13 @@ from app.repositories.audit import AuditLogRepository
 from app.repositories.auth import PermissionRepository, RoleRepository
 from app.repositories.collector import CollectorStatusRepository
 from app.repositories.inventory import InventoryRepository
+from app.repositories.metrics import MetricRepository
 from app.security.passwords import PasswordHasher, get_password_hasher
 from app.services.admin import AdminService
 from app.services.audit import AuditService
 from app.services.auth import AuthService
 from app.services.inventory import InventoryService
+from app.services.metrics import MetricService
 from app.services.users import UserService
 
 
@@ -57,6 +59,12 @@ def get_collector_status_repository(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> CollectorStatusRepository:
     return CollectorStatusRepository(session)
+
+
+def get_metric_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> MetricService:
+    return MetricService(MetricRepository(session))
 
 
 def require_trusted_origin(

@@ -60,6 +60,11 @@ Run:
 
 Test migrations.
 
+For Phase 4 metrics changes, also verify the live TimescaleDB hypertable,
+continuous aggregates, refresh policies, retention policies, and application
+role read access. Unit tests must cover collector-to-metric normalization,
+counter-derived rates and utilization, entity types, and time-window validation.
+
 
 
 \## Collector changes

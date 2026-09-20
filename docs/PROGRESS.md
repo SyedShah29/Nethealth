@@ -55,12 +55,26 @@ Status: complete. Revalidated on 2026-09-20.
 - [x] Safe per-assignment failure isolation and persistent collector status
 - [x] Authenticated collector-status API
 
+## Phase 4 — Metrics Platform
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Shared time-series schema for device, interface, ONU, and subscriber entities
+- [x] Device health, performance, reachability, latency, and environmental metrics
+- [x] Interface rate, utilization, error, discard, counter, and state metrics
+- [x] Configurable ONU optical, temperature, voltage, state, and distance collection
+- [x] Configurable subscriber session, rate, uptime, and disconnect collection
+- [x] Raw, 5-minute, hourly, and daily query resolutions
+- [x] Configurable 30-day raw, 180-day 5-minute, and two-year hourly retention
+- [x] Long-term daily aggregates without an expiry policy
+- [x] Permission-protected, bounded metrics query API
+
 ## Latest validation
 
-- Backend: 45 tests passed; Ruff passed; strict mypy passed.
+- Backend: 51 tests passed; Ruff passed; strict mypy passed.
 - Frontend: 4 tests passed; ESLint passed; TypeScript passed; production build passed.
 - Docker images built and the complete stack started successfully.
-- Alembic live migration reached revision `0006` (head).
+- Alembic live migration reached revision `0007` (head).
 - API and frontend returned HTTP 200; PostgreSQL, TimescaleDB, and Redis health passed.
 - Celery Beat dispatched repeated cycles and the worker completed them without errors.
 - UDP syslog was exercised through the loopback-only host binding.
@@ -68,4 +82,4 @@ Status: complete. Revalidated on 2026-09-20.
 
 ## Next phase
 
-Phase 4 — Metrics Platform. It has not been started.
+Phase 5 — Subscriber Operational Model. It has not been started.
