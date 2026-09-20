@@ -127,3 +127,93 @@ has no metric write endpoint; operational samples are written only by collector
 workers. Invalid or reversed time windows return `INVALID_TIME_RANGE` with HTTP
 422. Credentials and infrastructure management addresses are never metric tags
 or response fields.
+
+## Phase 5 subscribers
+
+All subscriber endpoints require `subscribers:read`. They expose operational
+identifiers only and never expose infrastructure credentials or unnecessary
+customer PII.
+
+- `GET /api/subscribers` lists subscribers with offset/limit pagination.
+  Optional filters are `search`, `status`, `nas_id`, `olt_id`, `pon_id`, and
+  `onu_id`. Search matches the NetHealth subscriber ID or permitted external
+  reference.
+- `GET /api/subscribers/resolve?external_reference=...` resolves an existing
+  ISP reference to the independently managed NetHealth subscriber ID.
+- `GET /api/subscribers/{subscriber_id}` returns one operational record.
+- `GET /api/subscribers/{subscriber_id}/sessions` returns newest sessions
+  first and accepts a bounded `limit`.
+
+Unknown subscribers and mappings return `SUBSCRIBER_NOT_FOUND` with HTTP 404.
+Phase 5 adds no browser-facing subscriber mutation endpoint; later approved
+integration and synchronization phases own record ingestion.
+
+## Phase 6 fiber access and optics
+
+Read endpoints require `operational:read`:
+
+- `GET /api/olts` and `GET /api/olts/{olt_id}`
+- `GET /api/pons` and `GET /api/pons/{pon_id}`; listing supports OLT and status
+  filters.
+- `GET /api/onus` and `GET /api/onus/{onu_id}`; listing supports OLT, PON,
+  subscriber, status, search, and bounded pagination.
+- `GET /api/onus/{onu_id}/optical-status` returns current RX/TX power,
+  temperature, and distance classified as `GOOD`, `WARNING`, `CRITICAL`, or
+  `UNKNOWN`.
+- `GET /api/onus/{onu_id}/optical-history?window=...` accepts `current`, `24h`,
+  `7d`, or `30d`. Historical windows use 5-minute, hourly, and daily Phase 4
+  aggregates respectively.
+- `GET /api/optical-thresholds` lists threshold configurations.
+
+Creating, updating, or deleting `/api/optical-thresholds` requires
+`thresholds:manage`, a trusted browser origin, and creates a threshold-change
+audit event. Threshold scope consists of vendor, technology, optional device
+model, and metric; credentials and management operations are never exposed.
+
+## Phase 7 topology
+
+Topology reads require `topology:read`. Node and edge configuration requires
+`devices:manage`, trusted-origin validation, and creates an audit event.
+
+- `GET /api/topology` returns all nodes and upstream-to-downstream edges.
+- `POST /api/topology/nodes` and `PATCH/DELETE /api/topology/nodes/{node_id}`
+  manage topology nodes.
+- `POST /api/topology/edges` and `DELETE /api/topology/edges/{edge_id}` manage
+  dependency edges.
+- `GET /api/topology/nodes/{node_id}/downstream` returns descendants.
+- `GET /api/topology/nodes/{node_id}/impact` groups failure impact by type.
+- `POST /api/topology/common-infrastructure` returns the lowest shared ancestor.
+- `GET /api/topology/pons/{pon_id}/subscribers` returns dependent subscribers.
+- `GET /api/topology/subscribers/{subscriber_id}/olt` returns the serving OLT.
+- `GET /api/topology/olts/{olt_id}/upstream` returns the nearest upstream device.
+- `GET /api/topology/interfaces/{interface_id}/downstream-devices` returns
+  devices depending on an inventory interface.
+
+## Phase 8 rules
+
+- `GET /api/rules` and `GET /api/rules/{rule_id}` require `operational:read`.
+- `POST /api/rules` and `PATCH/DELETE /api/rules/{rule_id}` require
+  `rules:manage` and trusted origin.
+- `POST /api/rules/{rule_id}/evaluate` requires `rules:manage`, evaluates
+  normalized signals, and persists evidence and trigger state.
+- `GET /api/rules/evaluations` requires `operational:read` and supports rule,
+  entity-type, entity-ID, and bounded-limit filters.
+
+## Phase 9 outage correlation
+
+- `POST /api/correlations/evaluate` requires `incidents:manage`. Observations
+  must fit within a configured 30–120 second window.
+- `GET /api/correlations` requires `incidents:read`.
+
+Responses contain common ancestor, classification, discrete confidence,
+affected entities, and factual evidence. They are not Phase 14 incident records.
+
+## Phase 10 root-cause classification
+
+- `POST /api/root-causes/classify` deterministically classifies supplied facts
+  and an optional correlation result.
+- `GET /api/root-causes` and `GET /api/root-causes/{assessment_id}` read saved
+  assessments.
+
+All root-cause endpoints require `diagnostics:read`. Outputs contain a
+classification, severity, evidence, affected entities, and recommended checks.

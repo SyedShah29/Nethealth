@@ -10,6 +10,57 @@
   --border: #2b3f4d;
 }
 
+.topology-filter {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1.5rem 0;
+  max-width: 16rem;
+}
+
+.topology-filter select {
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  padding: 0.55rem;
+}
+
+.topology-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.topology-node {
+  background: #fff;
+  border: 2px solid #94a3b8;
+  border-radius: 0.75rem;
+  color: #0f172a;
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  text-align: left;
+}
+
+.topology-node-type {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.topology-healthy { border-color: #15803d; }
+.topology-warning { border-color: #ca8a04; }
+.topology-critical { border-color: #b91c1c; }
+.topology-unknown { border-color: #64748b; }
+.topology-node.selected { box-shadow: 0 0 0 3px #0f172a; }
+.topology-node.affected { background: #f1f5f9; }
+
+.topology-impact,
+.topology-links {
+  background: #f8fafc;
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -153,3 +204,20 @@ h1 {
 .device-card a { color: var(--accent); }
 .monitoring-on { color: var(--accent); }
 .monitoring-off { color: var(--warning); }
+.app-nav { display: flex; gap: 1rem; margin-left: auto; }
+.app-nav a { color: var(--text); font-size: 0.9rem; text-decoration: none; }
+.fiber { gap: 1.5rem; }
+.fiber-olt, .fiber-pon { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.8rem; padding: 1rem; }
+.fiber-pon { margin-top: 0.75rem; }
+.fiber-onu-list, .history-list { display: grid; gap: 0.6rem; list-style: none; padding: 0; }
+.fiber-onu-list li, .history-list li { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
+.fiber a { color: var(--accent); }
+.optical-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.optical-grid article { display: grid; gap: 0.6rem; }
+.optical-grid h2 { font-size: 0.9rem; margin: 0; text-transform: capitalize; }
+.optical-good { color: var(--accent); }
+.optical-warning, .optical-unknown { color: var(--warning); }
+.optical-critical { color: var(--danger); }
+.history-windows { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.history-windows button { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 0.5rem; color: var(--text); cursor: pointer; padding: 0.6rem 0.9rem; }
+.history-windows button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }

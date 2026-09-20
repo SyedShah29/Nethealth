@@ -22,19 +22,38 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def include_object(
+    _object: object,
+    name: str | None,
+    type_: str,
+    reflected: bool,
+    _compare_to: object | None,
+) -> bool:
+    # TimescaleDB creates and owns this descending partition-time index when
+    # create_hypertable runs; it is not an application-managed schema object.
+    if reflected and type_ == "index" and name == "metric_samples_timestamp_idx":
+        return False
+    return True
+
+
 def run_migrations_offline() -> None:
     context.configure(
         url=config.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection: object) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

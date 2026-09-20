@@ -8,17 +8,27 @@ from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.db.session import get_db_session
 from app.models.auth import User
+from app.repositories.analysis import AnalysisRepository
 from app.repositories.audit import AuditLogRepository
 from app.repositories.auth import PermissionRepository, RoleRepository
 from app.repositories.collector import CollectorStatusRepository
+from app.repositories.fiber import FiberRepository, OpticalThresholdRepository
 from app.repositories.inventory import InventoryRepository
 from app.repositories.metrics import MetricRepository
+from app.repositories.rules import RuleRepository
+from app.repositories.subscriber import SubscriberRepository
+from app.repositories.topology import TopologyRepository
 from app.security.passwords import PasswordHasher, get_password_hasher
 from app.services.admin import AdminService
+from app.services.analysis import CorrelationService, RootCauseService
 from app.services.audit import AuditService
 from app.services.auth import AuthService
+from app.services.fiber import FiberService, OpticalThresholdService
 from app.services.inventory import InventoryService
 from app.services.metrics import MetricService
+from app.services.rules import RuleService
+from app.services.subscriber import SubscriberService
+from app.services.topology import TopologyService
 from app.services.users import UserService
 
 
@@ -65,6 +75,66 @@ def get_metric_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> MetricService:
     return MetricService(MetricRepository(session))
+
+
+def get_subscriber_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SubscriberService:
+    return SubscriberService(SubscriberRepository(session))
+
+
+def get_fiber_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> FiberService:
+    return FiberService(
+        FiberRepository(session),
+        OpticalThresholdRepository(session),
+        MetricRepository(session),
+    )
+
+
+def get_optical_threshold_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> OpticalThresholdService:
+    return OpticalThresholdService(
+        OpticalThresholdRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
+
+
+def get_topology_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> TopologyService:
+    return TopologyService(
+        TopologyRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
+
+
+def get_rule_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> RuleService:
+    return RuleService(
+        RuleRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
+
+
+def get_correlation_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> CorrelationService:
+    return CorrelationService(
+        AnalysisRepository(session),
+        TopologyRepository(session),
+        settings.correlation_window_seconds,
+    )
+
+
+def get_root_cause_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> RootCauseService:
+    return RootCauseService(AnalysisRepository(session))
 
 
 def require_trusted_origin(

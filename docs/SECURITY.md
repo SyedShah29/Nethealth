@@ -119,6 +119,37 @@ Do not require:
 
 Prefer internal subscriber IDs.
 
+Phase 5 subscriber records use pseudonymous operational IDs. Optional external
+references, current IP addresses, and MAC addresses are available only through
+authenticated endpoints protected by `subscribers:read`. The schema does not
+store customer names, CNICs, home addresses, billing/payment information,
+browsing history, or DNS history. Subscriber lookup failures use a generic
+not-found response and no subscriber value is written to authentication logs.
+
+Phase 6 fiber inventory and optical diagnostics are read-only through the API
+and require `operational:read`. The browser never connects to an OLT or ONU.
+Only NetHealth optical threshold configuration is mutable; those operations
+require `thresholds:manage`, trusted-origin validation, database constraints,
+and append-only audit events. No collector credential is stored in OLT, PON,
+ONU, threshold, optical-status, or optical-history records.
+
+Phase 7 topology reads require `topology:read`; topology metadata changes use
+the existing `devices:manage` capability, trusted-origin validation, cycle and
+integrity checks, and audit logging. Topology attributes must never contain
+credentials or customer PII. The browser receives dependency metadata only and
+never contacts infrastructure management interfaces.
+
+Phase 8 rule configuration requires `rules:manage`, trusted-origin validation,
+and audit logging. Rule conditions use fixed operators and cannot contain or
+execute code. Evaluation evidence contains normalized operational signals only,
+never credentials.
+
+Phase 9 correlation reads require `incidents:read`; explicit evaluation requires
+`incidents:manage`. Phase 10 assessment access requires `diagnostics:read`.
+Both engines are deterministic, operate on stored topology and supplied facts,
+and create no outbound network traffic. State-changing browser requests remain
+subject to trusted-origin checks.
+
 \## Local Development Network Exposure
 
 Local development services that must be published to the host must bind

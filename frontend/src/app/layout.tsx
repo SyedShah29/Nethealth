@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import "./styles.css";
 
@@ -21,6 +22,11 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               <strong>NetHealth</strong>
               <span className="subtitle">Network assurance platform</span>
             </div>
+            <nav className="app-nav" aria-label="Primary navigation">
+              <Link href="/inventory">Inventory</Link>
+              <Link href="/fiber">Fiber access</Link>
+              <Link href="/topology">Topology</Link>
+            </nav>
           </header>
           <main>{children}</main>
         </div>

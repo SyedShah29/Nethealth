@@ -69,12 +69,83 @@ Status: complete. Validated on 2026-09-20.
 - [x] Long-term daily aggregates without an expiry policy
 - [x] Permission-protected, bounded metrics query API
 
+## Phase 5 — Subscriber Operational Model
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Pseudonymous subscriber model without unnecessary customer PII
+- [x] Optional unique external ISP reference mapping
+- [x] Package speed, status, NAS, OLT, PON, ONU, current IP, and MAC fields
+- [x] Subscriber session history with start/end, NAS, IP, reason, and duration
+- [x] Database constraints for package speed, duration, and session time order
+- [x] Permission-protected subscriber list, search, resolve, detail, and session APIs
+- [x] Service/repository layering and standardized not-found behavior
+
+## Phase 6 — OLT / PON / ONU Model
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Device-linked OLT model with frames, slot information, and uplinks
+- [x] Frame/slot/port PON hierarchy with technology, state, capacity, and counts
+- [x] ONU identity, registration, subscriber relation, current optics, and distance
+- [x] Database-enforced ONU PON/OLT consistency
+- [x] Vendor/technology/model-specific optical threshold configuration
+- [x] GOOD, WARNING, CRITICAL, and UNKNOWN optical classification
+- [x] Current, 24-hour, 7-day, and 30-day optical history API and UI
+- [x] Read-only fiber inventory UI with OLT/PON/ONU hierarchy
+- [x] Audited RBAC-protected threshold management
+- [x] Phase 2 schema drift corrected and global Alembic check clean
+
+## Phase 7 — Topology Engine
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Typed topology nodes and upstream-to-downstream dependency edges
+- [x] PON subscriber, subscriber OLT, OLT upstream, common ancestor, interface
+  downstream, and failure-impact queries
+- [x] Cycle, duplicate, and self-edge protection
+- [x] Interactive topology UI with filtering and downstream impact selection
+- [x] Healthy, warning, critical, and unknown status text/icons plus color
+
+## Phase 8 — Rule Engine
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Configurable conditions, duration, severity, category, recommendation,
+  and enabled state
+- [x] Fixed deterministic comparison operators without executable expressions
+- [x] Congestion, optical, device-failure, and subscriber-instability rules
+- [x] Persistent condition evidence and trigger-state evaluation history
+- [x] RBAC-protected, trusted-origin, audited rule management
+
+## Phase 9 — Outage Correlation Engine
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Configurable 30–120 second correlation window
+- [x] Entity path resolution and lowest-common-ancestor correlation
+- [x] Lowest shared failing dependency plus site/uplink dimension evidence
+- [x] Downstream subscriber impact and shared-infrastructure evidence
+- [x] LOW, MEDIUM, HIGH, and CONFIRMED evidence-derived confidence
+- [x] Persisted findings without pre-empting Phase 14 incident lifecycle
+
+## Phase 10 — Root Cause Classification
+
+Status: complete. Validated on 2026-09-20.
+
+- [x] Deterministic PON-level outage classification
+- [x] Deterministic link-congestion classification
+- [x] Deterministic subscriber optical-fault classification
+- [x] OLT/core correlation mappings and safe `UNDETERMINED` result
+- [x] Classification, severity, evidence, affected entities, and checks
+
 ## Latest validation
 
-- Backend: 51 tests passed; Ruff passed; strict mypy passed.
-- Frontend: 4 tests passed; ESLint passed; TypeScript passed; production build passed.
-- Docker images built and the complete stack started successfully.
-- Alembic live migration reached revision `0007` (head).
+- Backend: 101 tests passed; Ruff passed; strict mypy passed.
+- Frontend: 11 tests passed; ESLint passed; TypeScript and production build passed.
+- Docker backend, migration, and frontend images built successfully.
+- Alembic live migration reached revision `0014` (head), and the global schema
+  drift check reports no pending upgrade operations.
 - API and frontend returned HTTP 200; PostgreSQL, TimescaleDB, and Redis health passed.
 - Celery Beat dispatched repeated cycles and the worker completed them without errors.
 - UDP syslog was exercised through the loopback-only host binding.
@@ -82,4 +153,4 @@ Status: complete. Validated on 2026-09-20.
 
 ## Next phase
 
-Phase 5 — Subscriber Operational Model. It has not been started.
+Phase 11 — Subscriber Health Scoring. It has not been started.

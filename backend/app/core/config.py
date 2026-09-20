@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     metrics_raw_retention_days: int = Field(default=30, ge=1)
     metrics_five_minute_retention_days: int = Field(default=180, ge=1)
     metrics_hourly_retention_days: int = Field(default=730, ge=1)
+    correlation_window_seconds: int = Field(default=60, ge=30, le=120)
 
     @property
     def database_url(self) -> str:

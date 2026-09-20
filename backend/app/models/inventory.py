@@ -16,7 +16,7 @@ class Site(Base):
     __tablename__ = "sites"
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    code: Mapped[str] = mapped_column(String(32), unique=True, index=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     region: Mapped[str] = mapped_column(String(120), nullable=False)
     latitude: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     longitude: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
