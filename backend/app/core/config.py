@@ -37,6 +37,17 @@ class Settings(BaseSettings):
     auth_max_failed_attempts: int = Field(default=5, ge=1, le=20)
     auth_lockout_minutes: int = Field(default=15, ge=1, le=1440)
 
+    collector_profiles_json: SecretStr = SecretStr("{}")
+    collector_reachability_seconds: int = Field(default=30, ge=1, le=86400)
+    collector_health_seconds: int = Field(default=60, ge=1, le=86400)
+    collector_interfaces_seconds: int = Field(default=60, ge=1, le=86400)
+    collector_optical_seconds: int = Field(default=180, ge=1, le=86400)
+    collector_inventory_seconds: int = Field(default=1800, ge=1, le=86400)
+    icmp_probe_attempts: int = Field(default=3, ge=1, le=20)
+    syslog_enabled: bool = False
+    syslog_bind_host: str = "127.0.0.1"
+    syslog_port: int = Field(default=5514, ge=1024, le=65535)
+
     @property
     def database_url(self) -> str:
         password = quote_plus(self.database_password.get_secret_value())

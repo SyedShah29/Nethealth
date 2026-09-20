@@ -90,6 +90,19 @@ authenticated CRUD endpoints under `/api`. Device listing supports search,
 site, device type, status, and monitoring-state filters. These endpoints manage
 metadata only and never communicate directly with ISP infrastructure.
 Collector profiles support `GET/POST/PATCH/DELETE`; they remain declarative
-configuration and do not execute collectors.
+configuration consumed asynchronously by collector workers. Profile fields
+include collector type, secret configuration key, polling interval, failure
+threshold, enabled state, name, and description. API responses never include
+resolved credentials.
 `GET /api/collector-status` exposes authenticated persisted collector health,
 optionally filtered by `device_id`.
+
+## Phase 1 role administration
+
+- `GET /api/admin/roles` and `GET /api/admin/permissions` require `roles:read`.
+- `PATCH /api/admin/roles/{role_id}` requires `roles:manage`, replaces an
+  optional permission set, and may update the description.
+
+The administrator role cannot lose `users:manage`, `roles:manage`, or
+`audit:read`, preventing configuration from removing all administrative access.
+Role changes are audited.

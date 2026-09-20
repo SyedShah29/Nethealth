@@ -1,13 +1,16 @@
 # ruff: noqa
 from datetime import datetime
 from uuid import UUID, uuid4
-from sqlalchemy import DateTime, Integer, String, Uuid
+from sqlalchemy import DateTime, Integer, String, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 from app.db.base import Base
 
 class CollectorStatusRecord(Base):
     __tablename__ = "collector_status"
+    __table_args__ = (
+        UniqueConstraint("device_id", "collector_type", name="uq_collector_status_device_type"),
+    )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     device_id: Mapped[UUID] = mapped_column(Uuid, nullable=False, index=True)
     collector_type: Mapped[str] = mapped_column(String(32), nullable=False)

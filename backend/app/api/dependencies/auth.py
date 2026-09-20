@@ -9,11 +9,12 @@ from app.core.errors import AppError
 from app.db.session import get_db_session
 from app.models.auth import User
 from app.repositories.audit import AuditLogRepository
-from app.repositories.auth import RoleRepository
+from app.repositories.auth import PermissionRepository, RoleRepository
 from app.repositories.collector import CollectorStatusRepository
 from app.repositories.inventory import InventoryRepository
 from app.security.passwords import PasswordHasher, get_password_hasher
 from app.services.admin import AdminService
+from app.services.audit import AuditService
 from app.services.auth import AuthService
 from app.services.inventory import InventoryService
 from app.services.users import UserService
@@ -37,12 +38,20 @@ def get_user_service(
 def get_admin_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> AdminService:
-    return AdminService(RoleRepository(session), AuditLogRepository(session))
+    return AdminService(
+        session,
+        RoleRepository(session),
+        PermissionRepository(session),
+        AuditLogRepository(session),
+    )
 
 def get_inventory_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> InventoryService:
-    return InventoryService(InventoryRepository(session))
+    return InventoryService(
+        InventoryRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
 
 def get_collector_status_repository(
     session: Annotated[AsyncSession, Depends(get_db_session)],

@@ -18,3 +18,14 @@ def test_device_rejects_invalid_management_ip() -> None:
             name="edge", hostname="edge-1", management_ip="not-an-ip",
             device_type="EDGE_ROUTER", site_id=uuid4(),
         )
+
+
+def test_device_rejects_unapproved_device_type() -> None:
+    with pytest.raises(ValidationError):
+        DeviceCreate(
+            name="edge",
+            hostname="edge-1",
+            management_ip="192.0.2.1",
+            device_type="FIREWALL",  # type: ignore[arg-type]
+            site_id=uuid4(),
+        )

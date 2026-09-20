@@ -104,10 +104,13 @@ many users.
 
 \### Permission
 
-Permissions are stable action codes. Phase 1 defines `users:manage`,
-`roles:read`, and `audit:read`. The `ADMIN` role receives all Phase 1
-permissions. Later phases add their own permission codes when their protected
-resources are implemented.
+Permissions are stable action codes. The initial role mappings cover user and
+role administration, audits, operational read access, topology, metrics,
+subscribers, incidents, diagnostics, jobs, field notes/photos, dashboards, and
+the planned configuration domains. The `ADMIN` role receives every seeded
+permission. NOC, support, field, and viewer roles receive only their roadmap
+capabilities; protected resources still enforce their specific code when those
+later-phase endpoints are introduced.
 
 \### User
 
@@ -141,6 +144,23 @@ supports updating or deleting audit events.
 
 ## Phase 2 inventory
 
-Sites, devices, interfaces, collector profiles, and collector assignments are
-represented as authoritative metadata. Collector assignments do not execute
-collectors or connect to ISP infrastructure.
+`Site` stores name, code, region, optional coordinates, and description.
+`Device` stores the approved device type, identity, management IP, vendor,
+model, site, monitoring state, collector-profile reference, status, and
+timestamps. `Interface` stores its device, name, description, speed, MAC
+address, and administrative and operational states.
+
+`CollectorProfile` declares `ICMP` or `SNMP`, an optional secret configuration
+key, interval, failure threshold, description, and enabled state.
+`CollectorAssignment` links a device to a collector profile and can be disabled
+independently.
+
+## Phase 3 collector status
+
+`CollectorStatus` has one row per device and collector type. It stores the last
+successful and failed poll times, consecutive failure count, latency, current
+health, current worker, and update time. Operational metric samples are not
+stored here; time-series persistence begins in Phase 4.
+
+Collector credentials are not database fields. A profile stores only a key
+that resolves to secret environment configuration inside collector workers.

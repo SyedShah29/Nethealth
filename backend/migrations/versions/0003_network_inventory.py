@@ -20,4 +20,9 @@ def upgrade() -> None:
     rows += [{"role_id": ROLES[r], "permission_id": PERMS["inventory:read"]} for r in ("NOC_ENGINEER", "VIEWER")]
     op.bulk_insert(rp, rows)
 def downgrade() -> None:
+    rp = sa.table("role_permissions", sa.column("permission_id", sa.Uuid()))
+    permissions = sa.table("permissions", sa.column("id", sa.Uuid()))
+    permission_ids = list(PERMS.values())
+    op.execute(rp.delete().where(rp.c.permission_id.in_(permission_ids)))
+    op.execute(permissions.delete().where(permissions.c.id.in_(permission_ids)))
     op.drop_table("collector_assignments"); op.drop_table("interfaces"); op.drop_table("devices"); op.drop_table("collector_profiles"); op.drop_table("sites")

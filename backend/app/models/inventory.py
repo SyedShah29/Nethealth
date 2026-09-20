@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Uuid
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Integer, Numeric, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -28,14 +28,32 @@ class Site(Base):
 
 class CollectorProfile(Base):
     __tablename__ = "collector_profiles"
+    __table_args__ = (
+        CheckConstraint("collector_type IN ('ICMP', 'SNMP')", name="ck_collector_profiles_type"),
+        CheckConstraint("interval_seconds > 0", name="ck_collector_profiles_interval"),
+        CheckConstraint(
+            "failure_threshold > 0", name="ck_collector_profiles_failure_threshold"
+        ),
+    )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(500))
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    collector_type: Mapped[str] = mapped_column(String(16), default="ICMP", nullable=False)
+    configuration_key: Mapped[str | None] = mapped_column(String(120))
+    interval_seconds: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
+    failure_threshold: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
 
 
 class Device(Base):
     __tablename__ = "devices"
+    __table_args__ = (
+        CheckConstraint(
+            "device_type IN ('CORE_ROUTER', 'EDGE_ROUTER', 'BNG', 'BRAS', "
+            "'AGGREGATION_SWITCH', 'ACCESS_SWITCH', 'OLT', 'OTHER')",
+            name="ck_devices_device_type",
+        ),
+    )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     hostname: Mapped[str] = mapped_column(String(255), nullable=False)

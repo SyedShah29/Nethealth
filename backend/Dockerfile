@@ -2,15 +2,20 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /build
 COPY pyproject.toml ./
-COPY app ./app
-RUN pip install --no-cache-dir --prefix=/install .
+RUN mkdir app \
+    && touch app/__init__.py \
+    && pip install --no-cache-dir --prefix=/install .
 
 FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-RUN groupadd --system nethealth && useradd --system --gid nethealth nethealth
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends iputils-ping \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system nethealth \
+    && useradd --system --gid nethealth nethealth
 WORKDIR /app
 COPY --from=builder /install /usr/local
 COPY alembic.ini ./

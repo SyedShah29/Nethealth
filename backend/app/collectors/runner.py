@@ -9,7 +9,10 @@ class CollectorRunner:
     async def poll(self) -> None:
         try:
             health = await self.collector.collect_device_health()
-            self.status.success(health.latency_ms)
+            if health.reachable:
+                self.status.success(health.latency_ms)
+            else:
+                self.status.failure()
         except Exception:
             self.status.failure()
         if self.persist is not None: await self.persist(self.status)

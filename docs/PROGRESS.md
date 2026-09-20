@@ -1,177 +1,71 @@
-\# NetHealth Project Progress
-
-
-
-\## Phase 0 — Project Foundation
-
-
-
-Status: complete, including live Docker integration validation on 2026-09-19.
-
-Governance and security review completed on 2026-09-19. The review added the
-planned top-level repository directories and ensured unexpected exception
-messages cannot leak through logs or API responses.
-
-\- \[x] Backend skeleton
-
-\- \[x] Frontend skeleton
-
-\- \[x] PostgreSQL
-
-\- \[x] TimescaleDB
-
-\- \[x] Redis
-
-\- \[x] Docker Compose
-
-\- \[x] Environment configuration
-
-\- \[x] Structured logging
-
-\- \[x] Standardized error handling
-
-\- \[x] Health endpoints
-
-\- \[x] Backend testing setup
-
-\- \[x] Frontend testing setup
-
-\- \[x] Linting
-
-\- \[x] Type checking
-
-Completed verification:
-
-\- backend unit/API tests
-
-\- backend lint and type checking
-
-\- frontend component tests, lint, type checking, and production build
-
-\- Alembic offline migration generation
-
-\- Docker Compose configuration rendering and network-exposure audit
-
-\- live PostgreSQL 16 and TimescaleDB 2.19.3 startup
-
-\- live Redis, migration, backend, worker, and frontend startup
-
-\- live API, database, Redis, and frontend health checks
-
-\- live host-port, private-network, non-root process, and container-hardening audit
-
-\- dependency audit with zero reported npm vulnerabilities
-
-\- unexpected-error secret-safety regression test
-
-
-
-\## Phase 1 — Authentication and RBAC
-
-
-
-Status: complete, including live migration and integration validation on
-2026-09-19.
-
-\- \[x] User model
-
-\- \[x] Roles
-
-\- \[x] Permissions
-
-\- \[x] Authentication
-
-\- \[x] Logout and session expiration
-
-\- \[x] Failed-login protection and account disabling
-
-\- \[x] RBAC enforcement
-
-\- \[x] Audit logging
-
-Completed verification:
-
-\- backend authentication, session, lockout, RBAC, audit, API, and model tests
-
-\- backend lint and strict type checking
-
-\- frontend tests, lint, type checking, and production build
-
-\- Alembic offline SQL generation and live upgrade to revision `0002`
-
-\- live seeded-role, permission, runtime database grant, and audit-event checks
-
-\- live unauthenticated, invalid-credential, health, and container exposure checks
-
-
-
-\## Phase 2 — Network Inventory
-
-
-
-\- \[ ] Sites
-
-\- \[ ] Devices
-
-\- \[ ] Interfaces
-
-\- \[ ] Device API
-
-\- \[ ] Inventory UI
-
-
-
-\## Phase 3 — Collector Framework
-
-
-
-\- \[ ] Collector abstraction
-
-\- \[ ] ICMP collector
-
-\- \[ ] SNMP collector
-
-\- \[ ] Syslog receiver
-
-\- \[ ] Vendor adapters
-
-\- \[ ] Scheduler
-
-\- \[ ] Collector failure handling
-
-
-
-\## Remaining Phases
-
-
-
-See `docs/MASTER\_PLAN.md`.
-
-Phase 2 inventory implementation is complete: sites, devices, interfaces,
-metadata-only collector profiles/assignments, RBAC permissions, migration 0003,
-CRUD APIs, and the inventory search/filter view.
-Collector profiles now also support update and delete operations.
-Phase 2 inventory UI is complete with site grouping, device detail pages,
-interface lists, monitoring state, and frontend coverage.
-
-Phase 3 collector framework complete: shared collector contracts, normalized
-health/syslog schemas, ICMP/SNMP adapter boundaries, vendor adapter structure,
-and scheduler primitives are implemented with tests. Network transports remain
-configuration-driven and no credentials are hardcoded.
-
-Phase 3 runtime pieces added: platform ICMP probe, SNMP query transport boundary,
-UDP syslog receiver, consecutive-failure tracking, scheduler status tracking,
-and migration 0004 for persistent collector status.
-Concrete SNMP/UDP transport integration, vendor adapter modules, collector
-runner persistence hooks, and default polling interval scheduling are included.
-Collector registry, scheduled execution wiring, authenticated collector-status
-listing, and end-to-end runner/registry tests complete the Phase 3 scope.
-The common contract now includes device health, interfaces, optical metrics,
-subscriber sessions, and environment collection; SNMP counter/environment OIDs,
-vendor OID maps, assignment execution, and the Celery poll boundary are wired.
-Optical and subscriber-session collection paths now execute through configured
-SNMP OIDs, vendor overrides are applied during collection, and worker services
-execute persisted assignment batches.
-SNMP table walking, power/fan readings, expanded vendor metric maps, and syslog
-event classification are implemented and covered by tests.
-
+# NetHealth Project Progress
+
+## Phase 0 — Project Foundation
+
+Status: complete. Revalidated on 2026-09-20.
+
+- [x] FastAPI backend and Next.js TypeScript frontend
+- [x] PostgreSQL 16 with TimescaleDB and Alembic
+- [x] Redis and Celery worker foundation
+- [x] Docker Compose and environment configuration
+- [x] Structured logging and standardized error handling
+- [x] API, database, and Redis health endpoints
+- [x] Backend and frontend test, lint, type-check, and build foundations
+- [x] Loopback-only host publishing; PostgreSQL and Redis remain internal-only
+
+## Phase 1 — Authentication and Access Control
+
+Status: complete. Revalidated on 2026-09-20.
+
+- [x] User, role, permission, session, and append-only audit models
+- [x] Argon2id password hashing and opaque server-side sessions
+- [x] Login, logout, expiration, failed-login lockout, and account disabling
+- [x] Permission enforcement on every protected endpoint
+- [x] Initial role capability mappings, including least-privilege support and field roles
+- [x] Administrator role and permission management with core-admin lockout protection
+- [x] Auditing for authentication, users, role assignments, and configuration changes
+- [x] Audit event vocabulary for later threshold and incident actions
+
+## Phase 2 — Network Inventory
+
+Status: complete. Revalidated on 2026-09-20.
+
+- [x] Exact approved device types
+- [x] Site, device, interface, collector-profile, and collector-assignment models
+- [x] CRUD APIs for sites, devices, interfaces, and collector assignments
+- [x] Persistent, audited configuration changes
+- [x] Device list, search, site/type/status/monitoring filters, site grouping, and state
+- [x] Device detail and interface list views
+- [x] Frontend inventory tests
+
+## Phase 3 — Collector Framework
+
+Status: complete. Revalidated on 2026-09-20.
+
+- [x] Common read-only collector contract
+- [x] Multi-attempt ICMP reachability, mean latency, packet loss, and failure thresholds
+- [x] SNMPv3-first transport with SNMPv2c compatibility
+- [x] Uptime, CPU, memory, interface state, counters, errors, and discards
+- [x] Temperature plus vendor power/fan metrics where supported
+- [x] Vendor optical and subscriber metric paths where supported
+- [x] Generic, Cisco, Huawei, MikroTik, and ZTE adapters
+- [x] UDP syslog receiver and normalized event schema
+- [x] Configurable assignment intervals and Celery Beat dispatch
+- [x] Database-backed assignment execution without credentials in task payloads
+- [x] Safe per-assignment failure isolation and persistent collector status
+- [x] Authenticated collector-status API
+
+## Latest validation
+
+- Backend: 45 tests passed; Ruff passed; strict mypy passed.
+- Frontend: 4 tests passed; ESLint passed; TypeScript passed; production build passed.
+- Docker images built and the complete stack started successfully.
+- Alembic live migration reached revision `0006` (head).
+- API and frontend returned HTTP 200; PostgreSQL, TimescaleDB, and Redis health passed.
+- Celery Beat dispatched repeated cycles and the worker completed them without errors.
+- UDP syslog was exercised through the loopback-only host binding.
+- Docker exposure audit found only loopback backend, frontend, and syslog publications.
+
+## Next phase
+
+Phase 4 — Metrics Platform. It has not been started.

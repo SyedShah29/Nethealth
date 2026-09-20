@@ -4,6 +4,7 @@ from decimal import Decimal
 from ipaddress import ip_address
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.models.enums import DeviceType
 
 def text(value: str) -> str:
     value = value.strip()
@@ -28,7 +29,7 @@ class SiteResponse(SiteBase):
     id: UUID; created_at: datetime; updated_at: datetime
 
 class DeviceBase(BaseModel):
-    name: str = Field(min_length=1, max_length=120); hostname: str = Field(min_length=1, max_length=255); management_ip: str; device_type: str = Field(min_length=1, max_length=32); vendor: str | None = None; model: str | None = None; site_id: UUID; monitoring_enabled: bool = True; collector_profile_id: UUID | None = None; status: str = "UNKNOWN"
+    name: str = Field(min_length=1, max_length=120); hostname: str = Field(min_length=1, max_length=255); management_ip: str; device_type: DeviceType; vendor: str | None = None; model: str | None = None; site_id: UUID; monitoring_enabled: bool = True; collector_profile_id: UUID | None = None; status: str = "UNKNOWN"
     @field_validator("name", "hostname", "device_type", "status", "vendor", "model")
     @classmethod
     def clean_text(cls, v: str | None) -> str | None: return text(v) if v is not None else v
@@ -37,7 +38,7 @@ class DeviceBase(BaseModel):
     def valid_ip(cls, v: str) -> str: ip_address(v); return v
 class DeviceCreate(DeviceBase): pass
 class DeviceUpdate(BaseModel):
-    name: str | None = None; hostname: str | None = None; management_ip: str | None = None; device_type: str | None = None; vendor: str | None = None; model: str | None = None; site_id: UUID | None = None; monitoring_enabled: bool | None = None; collector_profile_id: UUID | None = None; status: str | None = None
+    name: str | None = None; hostname: str | None = None; management_ip: str | None = None; device_type: DeviceType | None = None; vendor: str | None = None; model: str | None = None; site_id: UUID | None = None; monitoring_enabled: bool | None = None; collector_profile_id: UUID | None = None; status: str | None = None
     @field_validator("management_ip")
     @classmethod
     def valid_ip(cls, v: str | None) -> str | None: ip_address(v) if v else None; return v
@@ -54,9 +55,9 @@ class InterfaceResponse(InterfaceCreate):
     id: UUID
 
 class CollectorProfileCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=120); description: str | None = None; enabled: bool = True
+    name: str = Field(min_length=1, max_length=120); description: str | None = None; enabled: bool = True; collector_type: str = Field(default="ICMP", pattern="^(ICMP|SNMP)$"); configuration_key: str | None = None; interval_seconds: int = Field(default=60, ge=1, le=86400); failure_threshold: int = Field(default=3, ge=1, le=100)
 class CollectorProfileUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=1, max_length=120); description: str | None = None; enabled: bool | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=120); description: str | None = None; enabled: bool | None = None; collector_type: str | None = Field(default=None, pattern="^(ICMP|SNMP)$"); configuration_key: str | None = None; interval_seconds: int | None = Field(default=None, ge=1, le=86400); failure_threshold: int | None = Field(default=None, ge=1, le=100)
 class CollectorProfileResponse(CollectorProfileCreate):
     model_config = ConfigDict(from_attributes=True)
     id: UUID

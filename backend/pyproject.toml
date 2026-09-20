@@ -52,5 +52,5 @@ plugins = ["pydantic.mypy"]
 packages = ["app"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*"]
+module = ["celery.*", "pysnmp.*"]
 ignore_missing_imports = true

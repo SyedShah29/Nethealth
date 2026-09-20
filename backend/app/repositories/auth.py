@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import builtins
 from datetime import datetime
 from uuid import UUID
 
@@ -5,7 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.auth import AuthSession, Role, User
+from app.models.auth import AuthSession, Permission, Role, User
 from app.models.enums import RoleName
 
 
@@ -72,6 +75,14 @@ class RoleRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def get_by_id(self, role_id: UUID) -> Role | None:
+        result = await self.session.execute(
+            select(Role)
+            .where(Role.id == role_id)
+            .options(selectinload(Role.permissions))
+        )
+        return result.scalar_one_or_none()
+
     async def get_by_name(self, name: str) -> Role | None:
         result = await self.session.execute(
             select(Role)
@@ -85,6 +96,19 @@ class RoleRepository:
             select(Role).options(selectinload(Role.permissions)).order_by(Role.name)
         )
         return list(result.scalars().unique())
+
+
+class PermissionRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def list(self) -> list[Permission]:
+        result = await self.session.execute(select(Permission).order_by(Permission.code))
+        return list(result.scalars())
+
+    async def get_by_codes(self, codes: set[str]) -> builtins.list[Permission]:
+        result = await self.session.execute(select(Permission).where(Permission.code.in_(codes)))
+        return list(result.scalars())
 
 
 class AuthSessionRepository:

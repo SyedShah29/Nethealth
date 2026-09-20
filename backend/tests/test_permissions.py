@@ -22,3 +22,19 @@ async def test_permission_dependency_rejects_unauthorized_role() -> None:
 
     assert error.value.code == "PERMISSION_DENIED"
     assert error.value.status_code == 403
+
+
+def test_phase_role_capabilities_have_permission_codes() -> None:
+    required = {
+        "operational:read",
+        "topology:read",
+        "metrics:read",
+        "subscribers:read",
+        "incidents:manage",
+        "diagnostics:read",
+        "jobs:read",
+        "jobs:update",
+        "field_notes:create",
+        "dashboards:read",
+    }
+    assert required <= {permission.value for permission in PermissionCode}

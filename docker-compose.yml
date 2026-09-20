@@ -101,6 +101,12 @@ services:
       REDIS_DB: ${REDIS_DB:-0}
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-["http://127.0.0.1:3000"]}
+      ICMP_PROBE_ATTEMPTS: ${ICMP_PROBE_ATTEMPTS:-3}
+      COLLECTOR_REACHABILITY_SECONDS: ${COLLECTOR_REACHABILITY_SECONDS:-30}
+      COLLECTOR_HEALTH_SECONDS: ${COLLECTOR_HEALTH_SECONDS:-60}
+      COLLECTOR_INTERFACES_SECONDS: ${COLLECTOR_INTERFACES_SECONDS:-60}
+      COLLECTOR_OPTICAL_SECONDS: ${COLLECTOR_OPTICAL_SECONDS:-180}
+      COLLECTOR_INVENTORY_SECONDS: ${COLLECTOR_INVENTORY_SECONDS:-1800}
     command: ["uvicorn", "app.main:app", "--host", "backend-edge", "--port", "8000"]
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
@@ -139,6 +145,7 @@ services:
     environment:
       <<: *backend-environment
       SERVICE_NAME: nethealth-worker
+      COLLECTOR_PROFILES_JSON: ${COLLECTOR_PROFILES_JSON:-{}}
     command: ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=INFO"]
     depends_on:
       postgres:
@@ -157,6 +164,65 @@ services:
       - ALL
     networks:
       - private
+      - collector
+
+  scheduler:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      <<: *backend-environment
+      SERVICE_NAME: nethealth-scheduler
+    command: ["celery", "-A", "app.worker.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
+  syslog:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      <<: *backend-environment
+      SERVICE_NAME: nethealth-syslog
+      SYSLOG_ENABLED: "true"
+      SYSLOG_BIND_HOST: syslog-edge
+      SYSLOG_PORT: 5514
+    command: ["python", "-m", "app.cli.syslog_receiver"]
+    ports:
+      - "127.0.0.1:${SYSLOG_PORT:-5514}:5514/udp"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      edge:
+        aliases:
+          - syslog-edge
+      private:
+        aliases:
+          - syslog-private
 
   frontend:
     build:
@@ -197,3 +263,5 @@ networks:
   private:
     driver: bridge
     internal: true
+  collector:
+    driver: bridge

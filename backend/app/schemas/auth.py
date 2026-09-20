@@ -30,6 +30,21 @@ class RoleResponse(BaseModel):
     permissions: list[PermissionResponse]
 
 
+class RoleUpdateRequest(BaseModel):
+    description: str | None = Field(default=None, min_length=1, max_length=255)
+    permissions: list[str] | None = None
+
+    @field_validator("description")
+    @classmethod
+    def normalize_description(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Description must not be blank.")
+        return normalized
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

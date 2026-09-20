@@ -197,3 +197,15 @@ Phase 3 collectors implement the shared `DeviceCollector` contract and return
 normalized internal schemas. Protocol and vendor adapters are isolated under
 `app/collectors`; collectors are the only layer permitted to communicate with
 ISP infrastructure.
+
+Collector assignments are selected from PostgreSQL by a Celery Beat dispatcher.
+Only assignment identifiers enter Redis task payloads. Workers resolve secret
+profile configuration at execution time, choose the protocol/vendor adapter,
+invoke all supported collection contracts, and persist status independently so
+one target failure cannot terminate the worker.
+
+The worker joins a dedicated un-published collector bridge for outbound access
+to explicitly configured management targets. The API, scheduler, database, and
+Redis do not join that network. The syslog receiver publishes UDP only on the
+host loopback interface during local development. Metric sample persistence is
+reserved for Phase 4.

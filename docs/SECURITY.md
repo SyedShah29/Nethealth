@@ -142,6 +142,17 @@ than the PostgreSQL bootstrap/superuser account. Database migrations use a
 separate non-superuser role. Credentials must be supplied through ignored
 `.env` files or secure secret injection.
 
+Collector profiles persist only a configuration key. SNMP usernames,
+communities, authentication secrets, and privacy secrets are resolved from the
+ignored `COLLECTOR_PROFILES_JSON` environment value inside collector workers.
+That value may also contain deployment-specific read-only vendor OID overrides.
+Secrets are never placed in Celery task arguments, API responses, failure logs,
+or frontend bundles. Only collector workers join the outbound collector network.
+
+The local syslog receiver is published as UDP on `127.0.0.1` only. It logs
+normalized metadata but not raw syslog message bodies, which may contain
+operational or authentication details.
+
 
 
 \## Audit logging

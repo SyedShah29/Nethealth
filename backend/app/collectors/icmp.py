@@ -24,16 +24,20 @@ async def system_probe(address: str, timeout_seconds: float = 2.0) -> float | No
 class IcmpCollector(DeviceCollector):
     collector_type = "ICMP"
 
-    def __init__(self, device_id: UUID, management_ip: str, probe: Probe) -> None:
+    def __init__(self, device_id: UUID, management_ip: str, probe: Probe, attempts: int = 3) -> None:
         super().__init__(device_id); self.management_ip = management_ip; self._probe = probe
+        if attempts < 1: raise ValueError("ICMP attempts must be positive.")
+        self.attempts = attempts
 
     async def test_connection(self) -> bool:
         return await self._probe(self.management_ip) is not None
 
     async def collect_device_health(self) -> DeviceHealth:
-        latency = await self._probe(self.management_ip)
-        if latency is None: raise CollectorTransportError("ICMP probe failed.")
-        return DeviceHealth(self.device_id, True, latency, 0.0)
+        results = [await self._probe(self.management_ip) for _ in range(self.attempts)]
+        successful = [value for value in results if value is not None]
+        packet_loss = ((self.attempts - len(successful)) / self.attempts) * 100
+        latency = sum(successful) / len(successful) if successful else None
+        return DeviceHealth(self.device_id, bool(successful), latency, packet_loss)
 
     async def collect_interfaces(self) -> list[InterfaceHealth]:
         return []
