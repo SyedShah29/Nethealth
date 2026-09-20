@@ -74,6 +74,21 @@ Initial roles:
 
 \- VIEWER
 
+Passwords are hashed with Argon2id and are never stored or logged in plaintext.
+Authentication uses cryptographically random opaque session tokens. Only token
+hashes are persisted. Session cookies are HttpOnly and SameSite=Strict, are
+scoped to `/api`, and use Secure in production.
+
+Sessions expire after a configurable duration and logout revokes the server-side
+session. Repeated failures lock an account for a configurable period. Login
+failures use generic responses to avoid user enumeration and are serialized
+with a database row lock to prevent concurrent attempts bypassing the limit.
+
+Browser state-changing requests are checked against the configured trusted
+origins. Protected endpoints enforce explicit permission codes. Disabling a
+user invalidates their sessions on the next request, self-disabling is blocked,
+and the final active administrator cannot be removed.
+
 
 
 \## Customer data

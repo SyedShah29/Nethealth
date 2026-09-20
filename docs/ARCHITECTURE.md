@@ -177,3 +177,23 @@ No service mounts the Docker socket. Application containers run as non-root,
 drop Linux capabilities, prevent privilege escalation, and use read-only root
 filesystems with temporary storage where practical.
 
+\## Phase 1 authentication architecture
+
+Authentication and access control follow API, service, repository, and database
+layers. Passwords use Argon2id. Browser clients receive an opaque HttpOnly
+session cookie, while PostgreSQL stores only a SHA-256 token hash and explicit
+expiration/revocation state.
+
+Users belong to one role. Roles receive permissions through a many-to-many
+mapping, and protected API dependencies require specific permission codes.
+Authentication, user administration, role changes, disabling, and logout create
+append-only audit records through the service layer.
+
+Phase 2 inventory follows the API → service → repository → database layering.
+Collector profiles and assignments are declarative metadata consumed by the
+Phase 3 collector runtime.
+
+Phase 3 collectors implement the shared `DeviceCollector` contract and return
+normalized internal schemas. Protocol and vendor adapters are isolated under
+`app/collectors`; collectors are the only layer permitted to communicate with
+ISP infrastructure.

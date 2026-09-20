@@ -20,6 +20,7 @@ export class ApiError extends Error {
 
 export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include",
     headers: { Accept: "application/json" },
     signal,
   });

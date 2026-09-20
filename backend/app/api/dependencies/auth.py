@@ -1,0 +1,93 @@
+from collections.abc import Awaitable, Callable
+from typing import Annotated
+
+from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import Settings, get_settings
+from app.core.errors import AppError
+from app.db.session import get_db_session
+from app.models.auth import User
+from app.repositories.audit import AuditLogRepository
+from app.repositories.auth import RoleRepository
+from app.repositories.collector import CollectorStatusRepository
+from app.repositories.inventory import InventoryRepository
+from app.security.passwords import PasswordHasher, get_password_hasher
+from app.services.admin import AdminService
+from app.services.auth import AuthService
+from app.services.inventory import InventoryService
+from app.services.users import UserService
+
+
+def get_auth_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    password_hasher: Annotated[PasswordHasher, Depends(get_password_hasher)],
+) -> AuthService:
+    return AuthService(session, settings, password_hasher)
+
+
+def get_user_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    password_hasher: Annotated[PasswordHasher, Depends(get_password_hasher)],
+) -> UserService:
+    return UserService(session, password_hasher)
+
+
+def get_admin_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> AdminService:
+    return AdminService(RoleRepository(session), AuditLogRepository(session))
+
+def get_inventory_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> InventoryService:
+    return InventoryService(InventoryRepository(session))
+
+def get_collector_status_repository(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> CollectorStatusRepository:
+    return CollectorStatusRepository(session)
+
+
+def require_trusted_origin(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> None:
+    origin = request.headers.get("origin")
+    if origin is None:
+        return
+    backend_origin = f"{request.url.scheme}://{request.url.netloc}"
+    trusted_origins = {item.rstrip("/") for item in settings.backend_cors_origins}
+    trusted_origins.add(backend_origin)
+    if origin.rstrip("/") not in trusted_origins:
+        raise AppError(
+            code="UNTRUSTED_ORIGIN",
+            message="The request origin is not allowed.",
+            status_code=403,
+        )
+
+
+async def get_current_user(
+    request: Request,
+    service: Annotated[AuthService, Depends(get_auth_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> User:
+    token = request.cookies.get(settings.auth_cookie_name)
+    return await service.authenticate_session(token)
+
+
+def require_permission(permission: str) -> Callable[..., Awaitable[User]]:
+    async def dependency(
+        user: Annotated[User, Depends(get_current_user)],
+    ) -> User:
+        permissions = {item.code for item in user.role.permissions}
+        if permission not in permissions:
+            raise AppError(
+                code="PERMISSION_DENIED",
+                message="You do not have permission to perform this action.",
+                status_code=403,
+            )
+        return user
+
+    return dependency

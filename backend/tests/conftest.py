@@ -11,6 +11,7 @@ os.environ.setdefault("DATABASE_PASSWORD", secrets.token_urlsafe(32))
 os.environ.setdefault("REDIS_PASSWORD", secrets.token_urlsafe(32))
 
 from app.main import create_app  # noqa: E402
+from app.security.passwords import PasswordHasher  # noqa: E402
 
 
 @pytest.fixture
@@ -19,6 +20,11 @@ async def client() -> AsyncIterator[AsyncClient]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as test_client:
         yield test_client
+
+
+@pytest.fixture(scope="session")
+def password_hasher() -> PasswordHasher:
+    return PasswordHasher()
 
 
 class FakeScalarResult:

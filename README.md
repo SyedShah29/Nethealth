@@ -2,7 +2,7 @@
 
 NetHealth is an ISP network monitoring, assurance, outage-correlation, and
 incident-management platform. The current implementation contains the Phase 0
-application foundation only.
+foundation and Phase 1 authentication and access control.
 
 ## Local development
 
@@ -54,3 +54,19 @@ npm audit
 
 See `docs/MASTER_PLAN.md` for approved scope and `docs/SECURITY.md` for the
 mandatory local network-exposure rules.
+
+## First administrator
+
+After migrations complete, create the first administrator from an interactive
+terminal. The password is prompted securely and is never passed as a command
+argument:
+
+```text
+docker compose exec backend python -m app.cli.create_admin \
+  --name "NetHealth Administrator" --email "admin@example.com"
+```
+
+The bootstrap command stops working after an active administrator exists.
+Additional users must then be created through the authenticated `/api/users`
+API. Never place an administrator password in `.env`, Compose, shell history,
+or documentation.

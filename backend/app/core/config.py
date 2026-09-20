@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     redis_db: int = Field(default=0, ge=0)
     redis_password: SecretStr
 
+    auth_cookie_name: str = "nethealth_session"
+    auth_session_hours: int = Field(default=8, ge=1, le=168)
+    auth_max_failed_attempts: int = Field(default=5, ge=1, le=20)
+    auth_lockout_minutes: int = Field(default=15, ge=1, le=1440)
+
     @property
     def database_url(self) -> str:
         password = quote_plus(self.database_password.get_secret_value())

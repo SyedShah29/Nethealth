@@ -18,6 +18,7 @@ def _response(
     code: str,
     message: str,
     details: list[dict[str, Any]] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     error: dict[str, Any] = {"code": code, "message": message}
     request_id = getattr(request.state, "request_id", None)
@@ -25,7 +26,7 @@ def _response(
         error["request_id"] = request_id
     if details:
         error["details"] = details
-    return JSONResponse(status_code=status_code, content={"error": error})
+    return JSONResponse(status_code=status_code, content={"error": error}, headers=headers)
 
 
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
@@ -35,6 +36,7 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         code=exc.code,
         message=exc.message,
         details=exc.details,
+        headers=exc.headers,
     )
 
 

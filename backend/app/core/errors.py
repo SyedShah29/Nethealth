@@ -8,6 +8,7 @@ class AppError(Exception):
     message: str
     status_code: int = 400
     details: list[dict[str, Any]] = field(default_factory=list)
+    headers: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         Exception.__init__(self, self.message)

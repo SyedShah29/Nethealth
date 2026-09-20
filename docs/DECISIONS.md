@@ -146,3 +146,9 @@ Accepted / Temporary / Reverted
 
 \---
 
+### D-0001 — Phase 2 collector assignment metadata boundary
+
+Phase 2 adds lightweight collector profile and assignment tables so devices can
+reference future collection configuration. These records are metadata only;
+collector execution and all infrastructure communication remain deferred to
+Phase 3, preserving the architecture boundary.
