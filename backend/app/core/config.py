@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     service_name: str = "nethealth-api"
     api_prefix: str = "/api"
+    api_version_prefix: str = "/api/v1"
     backend_cors_origins: list[str] = Field(default_factory=lambda: ["http://127.0.0.1:3000"])
 
     postgres_host: str = "localhost"

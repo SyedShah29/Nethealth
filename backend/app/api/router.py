@@ -7,6 +7,7 @@ from app.api.routes.fiber import router as fiber_router
 from app.api.routes.health import router as health_router
 from app.api.routes.inventory import router as inventory_router
 from app.api.routes.metrics import router as metrics_router
+from app.api.routes.operations import router as operations_router
 from app.api.routes.rules import router as rules_router
 from app.api.routes.subscribers import router as subscribers_router
 from app.api.routes.topology import router as topology_router
@@ -24,3 +25,4 @@ api_router.include_router(fiber_router, tags=["fiber-access"])
 api_router.include_router(topology_router, tags=["topology"])
 api_router.include_router(rules_router, tags=["rules"])
 api_router.include_router(analysis_router, tags=["analysis"])
+api_router.include_router(operations_router, tags=["operations"])

@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import TopologyPage, { downstreamIds, statusPresentation } from "./page";
+import TopologyPage, { downstreamIds, nodeMatchesFilters, statusPresentation } from "./page";
 
 const graph = {
   nodes: [
-    { id: "core", node_type: "CORE", name: "CORE-01", entity_type: "DEVICE", entity_id: "1", status: "UP", attributes: {} },
-    { id: "olt", node_type: "OLT", name: "OLT-04", entity_type: "OLT", entity_id: "2", status: "WARNING", attributes: {} },
+    { id: "core", node_type: "CORE", name: "CORE-01", entity_type: "DEVICE", entity_id: "1", status: "UP", attributes: { site_id: "west", vendor: "Cisco", region: "north" } },
+    { id: "olt", node_type: "OLT", name: "OLT-04", entity_type: "OLT", entity_id: "2", status: "WARNING", attributes: { site_id: "west", vendor: "Huawei", region: "north" } },
     { id: "pon", node_type: "PON", name: "PON-7", entity_type: "PON", entity_id: "3", status: "DOWN", attributes: {} },
   ],
   edges: [
@@ -37,5 +37,10 @@ describe("topology", () => {
     fireEvent.click(screen.getByRole("button", { name: /CORE-01/ }));
     expect(screen.getByText("2 downstream entities depend on this node.")).toBeInTheDocument();
     expect(screen.getByText("PON: PON-7")).toBeInTheDocument();
+  });
+
+  it("supports every Phase 18 topology filter", () => {
+    expect(nodeMatchesFilters(graph.nodes[0], { site: "west", deviceType: "CORE", severity: "healthy", vendor: "Cisco", region: "north" })).toBe(true);
+    expect(nodeMatchesFilters(graph.nodes[0], { site: "east", deviceType: "", severity: "", vendor: "", region: "" })).toBe(false);
   });
 });

@@ -277,3 +277,24 @@ severity, factual evidence, affected entities, and ordered recommended checks.
 Classifiers return `UNDETERMINED` when facts do not match a known case.
 
 Migrations `0011` through `0014` add the Phase 7–10 tables.
+
+## Phases 11-20 operational assurance
+
+`SubscriberHealthScore` stores a subscriber's bounded score, category,
+component contribution explanation, weights, thresholds, and evaluation time.
+`OperationalAnomaly` stores entity/metric identity, method, current value,
+historical baseline, difference, threshold, duration, severity, and evidence.
+
+`Incident` stores the complete operational incident record. `IncidentEvent`
+stores each significant creation, evidence attachment, state, assignment, or
+comment change as a chronological event. `NotificationChannel` and
+`NotificationRule` store provider-independent routing configuration;
+`NotificationDelivery` uses a unique fingerprint to prevent duplicate delivery.
+
+`CapacityThreshold` stores configurable informational, warning, and critical
+percentages plus the required sustained duration. `CapacityAssessment` records
+the current and sustained values and evidence. `CapacityTrend` records the
+window, sample count, slope, projected crossing, and disclosed assumptions.
+
+Migrations `0015` through `0018` add these tables and seed the approved default
+70/80/90 percent sustained-load threshold configuration.

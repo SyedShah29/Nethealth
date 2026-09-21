@@ -1,8 +1,10 @@
 # NetHealth API
 
-Base path:
+Canonical versioned base path: `/api/v1`.
 
-/api
+The `/api` compatibility path remains available because the approved health
+contracts and existing integrations use it. Both paths enforce identical
+authentication, authorization, origin, validation, and error behavior.
 
 Planned API groups:
 
@@ -217,3 +219,27 @@ affected entities, and factual evidence. They are not Phase 14 incident records.
 
 All root-cause endpoints require `diagnostics:read`. Outputs contain a
 classification, severity, evidence, affected entities, and recommended checks.
+
+## Phases 11-20 operations APIs
+
+- `POST /api/subscriber-health/{subscriber_id}/evaluate` persists a configurable,
+  explainable 0-100 score; `GET` returns the latest result.
+- `GET /api/subscribers/{subscriber_id}/diagnostics` returns the Customer 360
+  identity, session, fiber, performance, stability, incident, diagnosis, and
+  health sections.
+- `POST /api/anomalies/evaluate` applies an explainable rolling, z-score, EWMA,
+  rate-of-change, baseline, or seasonal method. `GET /api/anomalies` lists results.
+- `/api/incidents` supports creation, listing, retrieval, lifecycle updates, and
+  `/api/incidents/{incident_id}/timeline`. Active incidents are deduplicated by
+  category and primary entity.
+- `/api/notification-channels` and `/api/notification-rules` configure routing;
+  `/api/incidents/{incident_id}/notifications/dispatch` performs deduplicated
+  incident-level dispatch.
+- `GET /api/dashboard` returns the NOC summary and ten approved widget datasets.
+- `/api/capacity/thresholds`, `/api/capacity/evaluate`, and
+  `/api/capacity/assessments` manage and evaluate sustained-load thresholds.
+- `/api/capacity/trends` creates and lists statistical threshold-crossing
+  projections together with their assumptions.
+
+All corresponding routes are also served beneath `/api/v1`. Read and mutation
+permissions are explicit; browser mutations additionally require a trusted origin.

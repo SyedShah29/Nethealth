@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
     application.add_middleware(RequestContextMiddleware)
     register_exception_handlers(application)
     application.include_router(api_router, prefix=settings.api_prefix)
+    application.include_router(api_router, prefix=settings.api_version_prefix)
     return application
 
 

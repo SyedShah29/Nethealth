@@ -9,8 +9,11 @@ from app.core.errors import AppError
 from app.models.enums import AuditEventType
 from app.models.rules import Rule, RuleEvaluation
 from app.repositories.rules import RuleRepository
+from app.schemas.operations import IncidentCreate
 from app.schemas.rules import RuleCondition, RuleEvaluationRequest
+from app.schemas.topology import EntityReference
 from app.services.audit import AuditService
+from app.services.operations import IncidentService
 
 
 def evaluate_condition(
@@ -66,9 +69,15 @@ def evaluate_rule(
 
 
 class RuleService:
-    def __init__(self, repository: RuleRepository, audit: AuditService) -> None:
+    def __init__(
+        self,
+        repository: RuleRepository,
+        audit: AuditService,
+        incidents: IncidentService | None = None,
+    ) -> None:
         self.repository = repository
         self.audit = audit
+        self.incidents = incidents
 
     async def list_rules(self, enabled: bool | None = None) -> list[Rule]:
         return await self.repository.list_rules(enabled=enabled)
@@ -131,7 +140,23 @@ class RuleService:
                 trigger_state=trigger_state,
             )
         )
-        await self.repository.session.commit()
+        if trigger_state == "TRIGGERED" and self.incidents is not None:
+            await self.incidents.create_or_attach(
+                IncidentCreate(
+                    category=rule.incident_category,
+                    severity=rule.severity,
+                    title=f"{rule.name}: {request.entity_id}",
+                    description=rule.description,
+                    primary_entity=EntityReference(
+                        entity_type=request.entity_type.upper(),
+                        entity_id=request.entity_id,
+                    ),
+                    evidence=evidence,
+                    recommendations=[rule.recommendation],
+                )
+            )
+        else:
+            await self.repository.session.commit()
         return evaluation
 
     async def list_evaluations(

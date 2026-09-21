@@ -23,9 +23,13 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               <span className="subtitle">Network assurance platform</span>
             </div>
             <nav className="app-nav" aria-label="Primary navigation">
+              <Link href="/dashboard">NOC</Link>
               <Link href="/inventory">Inventory</Link>
               <Link href="/fiber">Fiber access</Link>
               <Link href="/topology">Topology</Link>
+              <Link href="/diagnostics">Diagnostics</Link>
+              <Link href="/incidents">Incidents</Link>
+              <Link href="/capacity">Capacity</Link>
             </nav>
           </header>
           <main>{children}</main>

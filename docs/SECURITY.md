@@ -150,6 +150,18 @@ Both engines are deterministic, operate on stored topology and supplied facts,
 and create no outbound network traffic. State-changing browser requests remain
 subject to trusted-origin checks.
 
+Phases 11-20 preserve the same RBAC and trusted-origin boundaries. Health and
+anomaly evaluation, incident changes, notification configuration, and capacity
+configuration require explicit management permissions and are never exposed to
+anonymous callers. Threshold, notification, and incident changes create audit
+or incident-timeline records as applicable.
+
+Notification channels store only a configuration-key reference, never provider
+credentials. External email, SMS, WhatsApp, Telegram, and web-push adapters do
+not transmit until a provider is separately approved and configured. Customer
+360 exposes only the existing privacy-minimized operational subscriber record.
+No frontend route communicates directly with a router, switch, OLT, ONU, or NAS.
+
 \## Local Development Network Exposure
 
 Local development services that must be published to the host must bind

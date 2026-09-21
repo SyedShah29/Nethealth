@@ -139,12 +139,97 @@ Status: complete. Validated on 2026-09-20.
 - [x] OLT/core correlation mappings and safe `UNDETERMINED` result
 - [x] Classification, severity, evidence, affected entities, and checks
 
+## Phase 11 — Subscriber Health Scoring
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Configurable six-component 0-100 health scoring
+- [x] Configurable HEALTHY, GOOD, WARNING, and CRITICAL thresholds
+- [x] Persisted component contributions, weights, and threshold explanation
+- [x] Subscriber 360 health-score presentation
+
+## Phase 12 — Customer 360 Diagnostics
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Identity, session, fiber, performance, stability, and incident sections
+- [x] Deterministic diagnosis with factual evidence and recommended action
+- [x] Privacy-minimized, RBAC-protected diagnostics API and frontend
+
+## Phase 13 — Anomaly Detection
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Rolling statistics, z-score, EWMA, rate-of-change, baseline, and seasonal methods
+- [x] Optical degradation and traffic anomaly classifications
+- [x] Persisted current value, baseline, difference, threshold, duration, and evidence
+
+## Phase 14 — Incident Management
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Complete incident record and five-state lifecycle
+- [x] Automatic creation from triggered rules and correlated outages
+- [x] Active-incident deduplication with evidence attachment
+- [x] Assignment, comments, recommendations, impact, and root-cause fields
+
+## Phase 15 — Incident Timeline
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Chronological incident creation, evidence, and lifecycle events
+- [x] Assignment/comment changes retained in the timeline
+- [x] RBAC-protected timeline API
+
+## Phase 16 — Alerting System
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Provider-independent email, SMS, WhatsApp, Telegram, dashboard, and web-push adapters
+- [x] Configurable category, severity, team, and channel routing
+- [x] Incident-level aggregation and per-channel delivery deduplication
+- [x] External-provider delivery safely queued pending approved provider configuration
+
+## Phase 17 — NOC Dashboard
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Device, subscriber, and active-incident summaries
+- [x] All ten approved operational widgets
+- [x] Latest-score-only subscriber health distribution and device-linked OLT status
+
+## Phase 18 — Network Topology Dashboard
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Site, device-type, severity, vendor, and region filters
+- [x] Downstream dependency selection and subscriber/PON impact counts
+- [x] Accessible status text and icons in addition to color
+
+## Phase 19 — Capacity Monitoring
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Generic infrastructure-entity and metric evaluation for all approved capacity targets
+- [x] Configurable informational, warning, and critical thresholds
+- [x] Sustained-load duration and multi-sample evaluation
+- [x] Persisted assessments with factual evidence
+
+## Phase 20 — Capacity Trending
+
+Status: complete. Validated on 2026-09-21.
+
+- [x] Ordinary least-squares growth trends over supplied observations
+- [x] Projected threshold-crossing date when the fitted trend crosses in the future
+- [x] Window, sample count, slope, and assumptions displayed
+- [x] Projection explicitly presented as an estimate, not certainty
+
 ## Latest validation
 
-- Backend: 101 tests passed; Ruff passed; strict mypy passed.
-- Frontend: 11 tests passed; ESLint passed; TypeScript and production build passed.
+- Backend: 126 tests passed; Ruff passed; strict mypy passed.
+- Frontend: 16 tests passed; ESLint passed; TypeScript and production build passed.
 - Docker backend, migration, and frontend images built successfully.
-- Alembic live migration reached revision `0014` (head), and the global schema
+- Alembic live migration reached revision `0018` (head), and the global schema
   drift check reports no pending upgrade operations.
 - API and frontend returned HTTP 200; PostgreSQL, TimescaleDB, and Redis health passed.
 - Celery Beat dispatched repeated cycles and the worker completed them without errors.
@@ -153,4 +238,4 @@ Status: complete. Validated on 2026-09-20.
 
 ## Next phase
 
-Phase 11 — Subscriber Health Scoring. It has not been started.
+Phase 21 — Field Technician Module. It has not been started.

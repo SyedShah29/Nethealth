@@ -2,12 +2,14 @@ from uuid import uuid4
 
 import pytest
 
+from app.collectors.base import DeviceCollector
 from app.collectors.errors import CollectorConfigurationError
 from app.collectors.icmp import IcmpCollector
 from app.collectors.registry import CollectorRegistry
 from app.collectors.reliability import FailureTracker
 from app.collectors.runner import CollectorRunner
 from app.collectors.scheduler import CollectorScheduler, PollingIntervals
+from app.collectors.schemas import DeviceHealth, InterfaceHealth
 from app.collectors.snmp import SnmpCollector, SnmpProfile
 from app.collectors.status import StatusTracker
 from app.collectors.syslog import normalize_syslog
@@ -88,6 +90,44 @@ async def test_runner_persists_success_status() -> None:
     await CollectorRunner(collector, status, persist).poll()
     assert saved is True
     assert status.health == "HEALTHY"
+
+
+class FailingCollector(DeviceCollector):
+    collector_type = "TEST"
+
+    def __init__(self, failure: Exception) -> None:
+        super().__init__(uuid4())
+        self.failure = failure
+
+    async def test_connection(self) -> bool:
+        return False
+
+    async def collect_device_health(self) -> DeviceHealth:
+        raise self.failure
+
+    async def collect_interfaces(self) -> list[InterfaceHealth]:
+        return []
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [
+        TimeoutError("timeout"),
+        PermissionError("authentication failure"),
+        ValueError("malformed response"),
+        ConnectionError("device unavailable"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_collector_failures_are_isolated_and_persisted(failure: Exception) -> None:
+    status = StatusTracker(FailureTracker(threshold=3))
+    persisted: list[str] = []
+
+    async def persist(value: StatusTracker) -> None:
+        persisted.append(value.health)
+
+    await CollectorRunner(FailingCollector(failure), status, persist).poll()
+    assert persisted == ["DEGRADED"]
 
 
 def test_registry_registers_and_creates_collectors() -> None:

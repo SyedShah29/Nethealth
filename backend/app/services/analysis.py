@@ -9,6 +9,9 @@ from app.models.topology import TopologyNode
 from app.repositories.analysis import AnalysisRepository
 from app.repositories.topology import TopologyRepository
 from app.schemas.analysis import CorrelationRequest, RootCauseRequest
+from app.schemas.operations import IncidentCreate
+from app.schemas.topology import EntityReference
+from app.services.operations import IncidentService
 from app.services.topology import TopologyGraph
 
 UNHEALTHY_STATUSES = {"RED", "CRITICAL", "DOWN", "UNREACHABLE"}
@@ -85,10 +88,12 @@ class CorrelationService:
         analysis_repository: AnalysisRepository,
         topology_repository: TopologyRepository,
         default_window_seconds: int,
+        incidents: IncidentService | None = None,
     ) -> None:
         self.analysis_repository = analysis_repository
         self.topology_repository = topology_repository
         self.default_window_seconds = default_window_seconds
+        self.incidents = incidents
 
     async def correlate(self, request: CorrelationRequest) -> OutageCorrelation:
         window_seconds = request.window_seconds or self.default_window_seconds
@@ -203,7 +208,44 @@ class CorrelationService:
                 evidence=evidence,
             )
         )
-        await self.analysis_repository.session.commit()
+        if classification != "UNCORRELATED_FAULTS" and self.incidents is not None:
+            primary_type = ancestor.node_type if ancestor is not None else "UNKNOWN"
+            primary_id = str(ancestor.id) if ancestor is not None else "unknown"
+            await self.incidents.create_or_attach(
+                IncidentCreate(
+                    category=classification,
+                    severity={
+                        "LOW": "LOW",
+                        "MEDIUM": "MEDIUM",
+                        "HIGH": "HIGH",
+                        "CONFIRMED": "CRITICAL",
+                    }[confidence],
+                    title=f"{classification.replace('_', ' ').title()}: {primary_id}",
+                    description="Automatically created from a deterministic outage correlation.",
+                    primary_entity=EntityReference(
+                        entity_type=primary_type,
+                        entity_id=primary_id,
+                    ),
+                    affected_subscribers=[
+                        observation.entity_id
+                        for observation in request.observations
+                        if observation.entity_type.upper() == "SUBSCRIBER"
+                    ],
+                    affected_topology=[
+                        EntityReference(
+                            entity_type=observation.entity_type.upper(),
+                            entity_id=observation.entity_id,
+                        )
+                        for observation in request.observations
+                    ],
+                    evidence=evidence,
+                    recommendations=[
+                        "Check the lowest shared failing dependency and its upstream path."
+                    ],
+                )
+            )
+        else:
+            await self.analysis_repository.session.commit()
         return item
 
     async def list_correlations(self, limit: int) -> list[OutageCorrelation]:
@@ -213,6 +255,7 @@ class CorrelationService:
 def classify_root_cause(
     signals: dict[str, bool | float | int | str],
     correlation_class: str | None,
+    correlation_confidence: str | None = None,
 ) -> tuple[str, str, list[dict[str, Any]], list[str]]:
     offline_value = signals.get("offline_subscriber_count", 0)
     offline_count = (
@@ -319,7 +362,10 @@ def classify_root_cause(
             ["Check core reachability and upstream connectivity."],
         ),
     }
-    if correlation_class in correlation_mapping:
+    if (
+        correlation_class in correlation_mapping
+        and correlation_confidence in {"HIGH", "CONFIRMED"}
+    ):
         classification, severity, recommendations = correlation_mapping[correlation_class]
         return (
             classification,
@@ -350,6 +396,7 @@ class RootCauseService:
         classification, severity, evidence, recommended_checks = classify_root_cause(
             request.signals,
             correlation.classification if correlation is not None else None,
+            correlation.confidence if correlation is not None else None,
         )
         assessment = await self.repository.add_assessment(
             RootCauseAssessment(

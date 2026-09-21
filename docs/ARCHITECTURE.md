@@ -258,3 +258,22 @@ Phase 10 applies ordered classifiers for PON outages, link congestion,
 subscriber optical faults, OLT outages, and core outages. Each assessment
 contains its evidence and recommended checks. Unmatched inputs are
 `UNDETERMINED`; no probabilistic or LLM inference is used.
+
+Phases 11-13 add persisted subscriber health and anomaly analysis. Health scores
+retain component contributions, the exact configurable weights, and category
+thresholds used. Customer 360 composes existing repositories into one backend
+response. Anomaly methods are deterministic and retain baseline, difference,
+threshold, duration, rolling mean, and rolling standard deviation evidence.
+
+Phases 14-16 add the incident lifecycle, append-only incident events, and
+notification routing. Triggered rules and correlated outages call the incident
+service, which attaches evidence to an active incident for the same category and
+primary entity. Notifications are aggregated at incident scope and deduplicated
+per incident/channel. Dashboard delivery is local; external channel adapters
+remain queued until an approved provider is configured.
+
+Phases 17-20 expose read-only NOC, topology-impact, capacity, and trend views.
+Capacity evaluation uses sustained samples and configurable thresholds. Trend
+projection uses ordinary least-squares and always returns its assumptions; it is
+presented as an estimate. The frontend continues to communicate only with the
+backend API and never with infrastructure management interfaces.

@@ -21,6 +21,12 @@ async def test_application_health(client: AsyncClient) -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "healthy", "service": "nethealth-api"}
+
+
+async def test_versioned_application_health(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
     assert "X-Request-ID" in response.headers
 
 

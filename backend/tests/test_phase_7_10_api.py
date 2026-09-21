@@ -13,6 +13,14 @@ from httpx import AsyncClient
         ("POST", "/api/correlations/evaluate"),
         ("GET", "/api/root-causes"),
         ("POST", "/api/root-causes/classify"),
+        ("GET", "/api/subscriber-health/SUB-1"),
+        ("GET", "/api/subscribers/SUB-1/diagnostics"),
+        ("GET", "/api/anomalies"),
+        ("GET", "/api/incidents"),
+        ("GET", "/api/notification-channels"),
+        ("GET", "/api/dashboard"),
+        ("GET", "/api/capacity/assessments"),
+        ("GET", "/api/capacity/trends"),
     ],
 )
 async def test_phase_7_to_10_endpoints_require_authentication(

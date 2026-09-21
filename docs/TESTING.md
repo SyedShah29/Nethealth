@@ -90,6 +90,14 @@ window rejection, all confidence levels, subscriber-specific optical faults,
 congestion, evidence and recommended checks, and `UNDETERMINED` behavior when
 facts are insufficient. Run the global Alembic drift check after migrations.
 
+For Phases 11-20, test configurable health scoring and its component
+explanation; every initial anomaly method and required evidence; Customer 360
+sections and deterministic diagnosis; incident deduplication, transitions, and
+timeline; incident-level notification routing and deduplication; NOC widgets;
+all topology filters and impact counts; sustained configurable capacity
+thresholds; and statistical projection assumptions. Test protected routes for
+unauthenticated rejection and run the global Alembic drift check.
+
 
 
 \## Collector changes

@@ -93,9 +93,18 @@ def test_unknown_evidence_does_not_invent_a_diagnosis() -> None:
 
 
 def test_correlation_can_drive_root_cause_without_new_claims() -> None:
-    classification, severity, evidence, _ = classify_root_cause({}, "PON_OUTAGE")
+    classification, severity, evidence, _ = classify_root_cause(
+        {}, "PON_OUTAGE", "HIGH"
+    )
     assert (classification, severity) == ("PON_LEVEL_OUTAGE", "HIGH")
     assert evidence[0]["value"] == "PON_OUTAGE"
+
+
+def test_low_confidence_correlation_does_not_invent_root_cause() -> None:
+    classification, severity, _, _ = classify_root_cause(
+        {}, "PON_OUTAGE", "LOW"
+    )
+    assert (classification, severity) == ("UNDETERMINED", "INFO")
 
 
 def test_olt_and_core_failures_have_deterministic_classifiers() -> None:

@@ -15,6 +15,8 @@ from app.repositories.collector import CollectorStatusRepository
 from app.repositories.fiber import FiberRepository, OpticalThresholdRepository
 from app.repositories.inventory import InventoryRepository
 from app.repositories.metrics import MetricRepository
+from app.repositories.operations import OperationsRepository
+from app.repositories.reporting import ReportingRepository
 from app.repositories.rules import RuleRepository
 from app.repositories.subscriber import SubscriberRepository
 from app.repositories.topology import TopologyRepository
@@ -26,6 +28,14 @@ from app.services.auth import AuthService
 from app.services.fiber import FiberService, OpticalThresholdService
 from app.services.inventory import InventoryService
 from app.services.metrics import MetricService
+from app.services.operations import (
+    AnomalyService,
+    CapacityService,
+    HealthScoreService,
+    IncidentService,
+    NotificationService,
+)
+from app.services.reporting import DashboardService, DiagnosticsService
 from app.services.rules import RuleService
 from app.services.subscriber import SubscriberService
 from app.services.topology import TopologyService
@@ -114,9 +124,16 @@ def get_topology_service(
 def get_rule_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> RuleService:
+    operations = OperationsRepository(session)
+    audit = AuditService(AuditLogRepository(session))
     return RuleService(
         RuleRepository(session),
-        AuditService(AuditLogRepository(session)),
+        audit,
+        IncidentService(
+            operations,
+            audit,
+            NotificationService(operations, audit),
+        ),
     )
 
 
@@ -124,10 +141,17 @@ def get_correlation_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> CorrelationService:
+    operations = OperationsRepository(session)
+    audit = AuditService(AuditLogRepository(session))
     return CorrelationService(
         AnalysisRepository(session),
         TopologyRepository(session),
         settings.correlation_window_seconds,
+        IncidentService(
+            operations,
+            audit,
+            NotificationService(operations, audit),
+        ),
     )
 
 
@@ -135,6 +159,61 @@ def get_root_cause_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> RootCauseService:
     return RootCauseService(AnalysisRepository(session))
+
+
+def get_health_score_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> HealthScoreService:
+    return HealthScoreService(OperationsRepository(session), SubscriberRepository(session))
+
+
+def get_anomaly_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> AnomalyService:
+    return AnomalyService(OperationsRepository(session))
+
+
+def get_incident_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> IncidentService:
+    operations = OperationsRepository(session)
+    audit = AuditService(AuditLogRepository(session))
+    return IncidentService(
+        operations, audit, NotificationService(operations, audit)
+    )
+
+
+def get_notification_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> NotificationService:
+    return NotificationService(
+        OperationsRepository(session), AuditService(AuditLogRepository(session))
+    )
+
+
+def get_capacity_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> CapacityService:
+    return CapacityService(
+        OperationsRepository(session), AuditService(AuditLogRepository(session))
+    )
+
+
+def get_diagnostics_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> DiagnosticsService:
+    return DiagnosticsService(
+        SubscriberRepository(session),
+        FiberRepository(session),
+        OperationsRepository(session),
+        ReportingRepository(session),
+    )
+
+
+def get_dashboard_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> DashboardService:
+    return DashboardService(ReportingRepository(session))
 
 
 def require_trusted_origin(
