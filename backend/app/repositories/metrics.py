@@ -3,7 +3,6 @@ from typing import Any
 
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select
 
 from app.models.metrics import MetricSample
 from app.schemas.metrics import (
@@ -50,7 +49,7 @@ class MetricRepository:
         return result.scalar_one_or_none()
 
     async def query_raw(self, query: MetricQuery) -> list[MetricSample]:
-        statement: Select[tuple[MetricSample]] = select(MetricSample).where(
+        statement = select(MetricSample).where(
             MetricSample.timestamp >= query.start,
             MetricSample.timestamp < query.end,
         )
@@ -65,7 +64,7 @@ class MetricRepository:
         result = await self.session.execute(
             statement.order_by(MetricSample.timestamp).limit(query.limit)
         )
-        return list(result.scalars().all())
+        return list(result.scalars())
 
     async def query_aggregate(self, query: MetricQuery) -> list[dict[str, Any]]:
         view = AGGREGATE_VIEWS[query.resolution]

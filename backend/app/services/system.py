@@ -71,7 +71,7 @@ class PlatformHealthService:
         )
         return PlatformHealthResponse(
             status=status,
-            collector_health={str(key): int(value) for key, value in collector_rows},
+            collector_health={str(key): int(cast(int, value)) for key, value in collector_rows},
             worker={
                 "status": "ONLINE" if worker_seen_text else "UNKNOWN",
                 "last_seen": worker_seen_text,
