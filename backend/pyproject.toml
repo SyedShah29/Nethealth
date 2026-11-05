@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "nethealth-backend"
 version = "0.1.0"
 description = "NetHealth backend API"
+authors = [{ name = "Syed Hasaan Shah" }]
 requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.14,<2",
