@@ -122,9 +122,7 @@ async def get_onu_optical_history(
 
 @router.get("/optical-thresholds", response_model=list[OpticalThresholdResponse])
 async def list_optical_thresholds(
-    service: Annotated[
-        OpticalThresholdService, Depends(get_optical_threshold_service)
-    ],
+    service: Annotated[OpticalThresholdService, Depends(get_optical_threshold_service)],
     _user: Annotated[User, Depends(read_operational)],
 ) -> list[OpticalThreshold]:
     return await service.list()
@@ -138,9 +136,7 @@ async def list_optical_thresholds(
 )
 async def create_optical_threshold(
     payload: OpticalThresholdCreate,
-    service: Annotated[
-        OpticalThresholdService, Depends(get_optical_threshold_service)
-    ],
+    service: Annotated[OpticalThresholdService, Depends(get_optical_threshold_service)],
     user: Annotated[User, Depends(manage_thresholds)],
 ) -> OpticalThreshold:
     return await service.create(payload, user.id)
@@ -154,9 +150,7 @@ async def create_optical_threshold(
 async def update_optical_threshold(
     threshold_id: UUID,
     payload: OpticalThresholdUpdate,
-    service: Annotated[
-        OpticalThresholdService, Depends(get_optical_threshold_service)
-    ],
+    service: Annotated[OpticalThresholdService, Depends(get_optical_threshold_service)],
     user: Annotated[User, Depends(manage_thresholds)],
 ) -> OpticalThreshold:
     return await service.update(threshold_id, payload, user.id)
@@ -169,9 +163,7 @@ async def update_optical_threshold(
 )
 async def delete_optical_threshold(
     threshold_id: UUID,
-    service: Annotated[
-        OpticalThresholdService, Depends(get_optical_threshold_service)
-    ],
+    service: Annotated[OpticalThresholdService, Depends(get_optical_threshold_service)],
     user: Annotated[User, Depends(manage_thresholds)],
 ) -> None:
     await service.delete(threshold_id, user.id)

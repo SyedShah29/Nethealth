@@ -1,0 +1,7 @@
+FROM timescale/timescaledb:2.19.3-pg16
+
+RUN apk add --no-cache openssl \
+    && mkdir -p /backups \
+    && chown postgres:postgres /backups
+
+USER postgres

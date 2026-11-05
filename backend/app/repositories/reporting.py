@@ -145,9 +145,7 @@ class ReportingRepository:
         optical_onus = list(
             (
                 await self.session.execute(
-                    select(ONU)
-                    .where(ONU.rx_power.is_not(None), ONU.status != "ONLINE")
-                    .limit(10)
+                    select(ONU).where(ONU.rx_power.is_not(None), ONU.status != "ONLINE").limit(10)
                 )
             ).scalars()
         )
@@ -205,7 +203,8 @@ class ReportingRepository:
                 {"entity_id": item.entity_id, "type": item.anomaly_type}
                 for item in anomalies
                 if item.anomaly_type == "OPTICAL_DEGRADATION_WARNING"
-            ][:10] + [
+            ][:10]
+            + [
                 {"entity_id": str(item.id), "type": "ONU_STATUS", "status": item.status}
                 for item in optical_onus
             ],

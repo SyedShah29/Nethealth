@@ -34,9 +34,7 @@ class Subscriber(Base):
     )
 
     subscriber_id: Mapped[str] = mapped_column(String(120), primary_key=True)
-    external_reference: Mapped[str | None] = mapped_column(
-        String(255), unique=True, index=True
-    )
+    external_reference: Mapped[str | None] = mapped_column(String(255), unique=True, index=True)
     package_speed: Mapped[int | None] = mapped_column(BigInteger)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="UNKNOWN")
     nas_id: Mapped[str | None] = mapped_column(String(120))

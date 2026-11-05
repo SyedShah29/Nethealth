@@ -1,8 +1,8 @@
 # NetHealth Roadmap Audit
 
-Audit date: 2026-09-21
+Audit date: 2026-09-22
 
-Scope: every requirement and exit criterion in `MASTER_PLAN.md` Phases 0-20.
+Scope: every requirement and exit criterion in `MASTER_PLAN.md` Phases 0-32.
 Evidence was checked against implementation, migrations, automated tests, the
 production frontend build, and the running Docker Compose stack.
 
@@ -29,12 +29,37 @@ production frontend build, and the running Docker Compose stack.
 | 18 Topology dashboard | Complete | Site, device type, severity, vendor, and region filters plus downstream subscriber/PON impact counts. |
 | 19 Capacity | Complete | Generic approved entity/metric monitoring, seeded and configurable 70/80/90 thresholds, sustained multi-sample evaluation, and evidence. |
 | 20 Trending | Complete | Statistical slope, projected threshold crossing, observation window/sample count, disclosed assumptions, and non-certain wording. |
+| 21 Field technician | Complete | Assignment-scoped tickets, ordered actions, notes, bounded photos, and a field operations UI. |
+| 22 Historical analytics | Complete | Incident, outage, repair-time, subscriber, optical, congestion, and availability measures. |
+| 23 Reporting | Complete | Six permission-protected operational CSV report types. |
+| 24 Global search | Complete | Permission-filtered subscriber, fiber, inventory, incident, and site search. |
+| 25 Escalation | Complete | Configurable ordered escalation steps, scheduled evaluation, delivery, and deduplication. |
+| 26 Maintenance | Complete | Audited device/site windows and explicit expected-maintenance incident labeling. |
+| 27 Suppression | Complete | Topology-aware downstream attachment to an active explaining upstream incident. |
+| 28 Security hardening | Complete | Environment-backed credentials and boolean-only credential state in API responses. |
+| 29 Segmentation | Complete | Private application data network, collector-only outbound network, and loopback host publications. |
+| 30 Database security | Complete | Production TLS enforcement, separate runtime/migration/backup roles, and encrypted backups. |
+| 31 Audit log | Complete | Append-only audit integration for authentication, configuration, workflow, and incident actions. |
+| 32 Privacy | Complete | Pseudonymous subscriber identity and schema/API exclusion of prohibited customer data. |
+| 33 Scale testing | Complete | Four approved synthetic scales and the 5,000-disconnect correlated incident scenario. |
+| 34 Simulator | Complete | Approved topology shape and deterministic operational metric generation. |
+| 35 Failure simulation | Complete | All ten manual failures with evidence and expected diagnoses. |
+| 36 Automated suite | Complete | Unit, integration, API, collector, rule, correlation, security, authorization, database, frontend, and E2E categories. |
+| 37 Correlation regressions | Complete | Exact PON, OLT, isolated optical, and shared-core congestion scenarios. |
+| 38 UX polish | Complete | Consistent accessible status text and non-color indicators across shared status UI. |
+| 39 Observability | Complete | Authenticated platform health for all ten approved platform signals. |
+| 40 Disaster recovery | Complete | Encrypted database/configuration backups and a successful guarded restore test. |
+| 41 Production deployment | Ready | Linux Compose, hardened Nginx TLS proxy, and deployment checks are implemented; approved host deployment remains external. |
+| 42 Pilot | Blocked | Runbook and evidence validation exist; an approved router/OLT pilot is required. |
+| 43 Real data | Blocked | Five authoritative comparison gates require ISP access and operator evidence. |
+| 44 Expansion | Blocked | POP-to-full-network progression requires successful live gate evidence. |
+| 45 Acceptance | Blocked | Final sign-off cannot precede pilot, real-data, and expansion evidence. |
 
 ## Cross-cutting verification
 
-- Backend: 126 tests passed; Ruff and strict mypy passed.
-- Frontend: 16 tests passed; ESLint, TypeScript, and production build passed.
-- Database: migrations applied through `0018`; Alembic drift check found no changes.
+- Backend: 149 tests passed; Ruff passed; strict mypy passed across 120 source files.
+- Frontend: 18 tests passed; ESLint, TypeScript, and production build passed.
+- Database: migrations applied through `0019`; Alembic drift check found no changes.
 - Runtime: backend, frontend, PostgreSQL, TimescaleDB, and Redis health checks passed.
 - Exposure: backend `127.0.0.1:8000`, frontend `127.0.0.1:3000`, and syslog
   `127.0.0.1:5514/udp`; PostgreSQL and Redis are internal-only. No unspecified,
@@ -42,5 +67,7 @@ production frontend build, and the running Docker Compose stack.
   host networking is configured.
 - Security: no production credentials were introduced; the browser remains
   backend-only and collectors remain the sole infrastructure-facing layer.
+  Upgrade-safe role provisioning and an encrypted backup smoke test passed.
 
-The next approved work is Phase 21, the Field Technician Module.
+The next operational work is Phase 41 deployment on an approved Linux host,
+followed by the Phase 42 pilot. Phases 42-45 remain evidence-gated.

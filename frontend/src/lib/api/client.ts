@@ -34,3 +34,21 @@ export async function apiGet<T>(path: string, signal?: AbortSignal): Promise<T> 
   }
   return (await response.json()) as T;
 }
+
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as ApiErrorEnvelope;
+    throw new ApiError(
+      payload.error?.message ?? "The API request failed.",
+      payload.error?.code ?? "API_REQUEST_FAILED",
+      response.status,
+    );
+  }
+  return (await response.json()) as T;
+}

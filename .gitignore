@@ -35,6 +35,7 @@ Thumbs.db
 
 # Sensitive files
 *.pem
+*.crt
 *.key
 secrets/
 
@@ -44,6 +45,18 @@ secrets/
 
 # Docker Desktop local VM state
 /DockerDesktopWSL/
+*.vhdx
+
+# Agent / editor state
+.codewhale/
+.eslintcache
+*.bak
+*.swp
+
+# Backup artifacts
+*.dump
+*.dump.enc
+*.tar.enc
 
 # Temporary
 tmp/

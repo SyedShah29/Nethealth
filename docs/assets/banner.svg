@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="NetHealth — network assurance for ISPs">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#060d18"/>
+      <stop offset="0.55" stop-color="#0a1c31"/>
+      <stop offset="1" stop-color="#0d2b45"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#12283f" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#grid)" opacity="0.55"/>
+
+  <g stroke="#1e4a6d" stroke-width="1.4" opacity="0.9">
+    <path d="M760 236 L866 176 L972 214 L1062 138"/>
+    <path d="M760 236 L872 268 L1006 258 L1120 300"/>
+    <path d="M866 176 L884 74 L1000 52"/>
+    <path d="M972 214 L1062 138 L1168 96"/>
+    <path d="M884 74 L992 128 L1062 138"/>
+    <path d="M872 268 L884 74"/>
+  </g>
+
+  <g fill="#0b1a2b" stroke="url(#accent)" stroke-width="2">
+    <circle cx="760" cy="236" r="7"/>
+    <circle cx="866" cy="176" r="9"/>
+    <circle cx="972" cy="214" r="7"/>
+    <circle cx="1062" cy="138" r="10"/>
+    <circle cx="884" cy="74" r="7"/>
+    <circle cx="1000" cy="52" r="6"/>
+    <circle cx="1168" cy="96" r="6"/>
+    <circle cx="872" cy="268" r="6"/>
+    <circle cx="1006" cy="258" r="6"/>
+    <circle cx="1120" cy="300" r="6"/>
+  </g>
+  <g fill="#34d399">
+    <circle cx="1062" cy="138" r="3.4"/>
+    <circle cx="866" cy="176" r="3"/>
+  </g>
+
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="72" y="132" fill="#7dd3fc" font-size="17" letter-spacing="6" font-weight="600">NETWORK ASSURANCE PLATFORM</text>
+    <text x="70" y="206" fill="#ffffff" font-size="76" font-weight="700" letter-spacing="-1">NetHealth</text>
+    <text x="73" y="247" fill="#9fc2dd" font-size="21">From raw signal to resolved incident — one deterministic platform.</text>
+    <text x="73" y="281" fill="#5f89a8" font-size="15" letter-spacing="1.5">ICMP + SNMP COLLECTORS  ·  TIMESCALEDB  ·  TOPOLOGY CORRELATION  ·  RBAC + AUDIT</text>
+  </g>
+  <rect x="0" y="316" width="1280" height="4" fill="url(#accent)"/>
+</svg>

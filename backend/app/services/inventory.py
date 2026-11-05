@@ -31,9 +31,7 @@ class InventoryService:
             return item
         except IntegrityError as exc:
             await self.repo.session.rollback()
-            raise AppError(
-                "CONFLICT", "Inventory item conflicts with existing data.", 409
-            ) from exc
+            raise AppError("CONFLICT", "Inventory item conflicts with existing data.", 409) from exc
 
     async def update(
         self,

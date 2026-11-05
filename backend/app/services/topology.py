@@ -59,9 +59,7 @@ class TopologyGraph:
         )
         return [self.nodes[item] for item in ranked]
 
-    def _walk(
-        self, node_id: UUID, adjacency: dict[UUID, set[UUID]]
-    ) -> list[TopologyNode]:
+    def _walk(self, node_id: UUID, adjacency: dict[UUID, set[UUID]]) -> list[TopologyNode]:
         visited: set[UUID] = set()
         queue: deque[UUID] = deque(sorted(adjacency.get(node_id, set()), key=str))
         while queue:
@@ -92,9 +90,7 @@ class TopologyService:
             raise AppError("TOPOLOGY_NODE_NOT_FOUND", "Topology node not found.", 404)
         return node
 
-    async def create_node(
-        self, data: dict[str, Any], actor_user_id: UUID
-    ) -> TopologyNode:
+    async def create_node(self, data: dict[str, Any], actor_user_id: UUID) -> TopologyNode:
         data["node_type"] = str(data["node_type"])
         if data.get("entity_type") is not None:
             data["entity_type"] = str(data["entity_type"]).upper()
@@ -128,9 +124,7 @@ class TopologyService:
         await self._audit("TopologyNode", node.id, "deleted", actor_user_id)
         await self.repository.session.commit()
 
-    async def create_edge(
-        self, data: dict[str, Any], actor_user_id: UUID
-    ) -> TopologyEdge:
+    async def create_edge(self, data: dict[str, Any], actor_user_id: UUID) -> TopologyEdge:
         source = await self.get_node(data["source_node_id"])
         target = await self.get_node(data["target_node_id"])
         nodes, edges = await self.graph()
@@ -176,9 +170,7 @@ class TopologyService:
             counts_by_type=dict(Counter(item.node_type for item in downstream)),
         )
 
-    async def common_infrastructure(
-        self, entities: list[EntityReference]
-    ) -> TopologyNode:
+    async def common_infrastructure(self, entities: list[EntityReference]) -> TopologyNode:
         nodes, edges = await self.graph()
         resolved: list[TopologyNode] = []
         for entity in entities:
@@ -190,9 +182,7 @@ class TopologyService:
                     404,
                 )
             resolved.append(node)
-        ancestor = TopologyGraph(nodes, edges).common_ancestor(
-            [item.id for item in resolved]
-        )
+        ancestor = TopologyGraph(nodes, edges).common_ancestor([item.id for item in resolved])
         if ancestor is None:
             raise AppError(
                 "COMMON_INFRASTRUCTURE_NOT_FOUND",
@@ -203,9 +193,7 @@ class TopologyService:
 
     async def subscribers_for_pon(self, pon_id: UUID) -> list[TopologyNode]:
         pon = await self._entity_node("PON", str(pon_id))
-        return [
-            item for item in await self.downstream(pon.id) if item.node_type == "SUBSCRIBER"
-        ]
+        return [item for item in await self.downstream(pon.id) if item.node_type == "SUBSCRIBER"]
 
     async def olt_for_subscriber(self, subscriber_id: str) -> TopologyNode:
         subscriber = await self._entity_node("SUBSCRIBER", subscriber_id)
@@ -217,9 +205,7 @@ class TopologyService:
             olt.id, {"TRANSIT", "CORE", "BNG", "BRAS", "AGGREGATION", "ACCESS"}
         )
 
-    async def downstream_devices_for_interface(
-        self, interface_id: UUID
-    ) -> list[TopologyNode]:
+    async def downstream_devices_for_interface(self, interface_id: UUID) -> list[TopologyNode]:
         nodes, edges = await self.graph()
         graph = TopologyGraph(nodes, edges)
         starts = [edge.target_node_id for edge in edges if edge.interface_id == interface_id]
@@ -240,9 +226,7 @@ class TopologyService:
             )
         return node
 
-    async def _nearest_ancestor(
-        self, node_id: UUID, allowed_types: set[str]
-    ) -> TopologyNode:
+    async def _nearest_ancestor(self, node_id: UUID, allowed_types: set[str]) -> TopologyNode:
         nodes, edges = await self.graph()
         graph = TopologyGraph(nodes, edges)
         distances = graph.ancestors_with_distance(node_id)

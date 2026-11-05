@@ -20,9 +20,7 @@ class AnalysisRepository:
 
     async def list_correlations(self, limit: int = 100) -> list[OutageCorrelation]:
         result = await self.session.execute(
-            select(OutageCorrelation)
-            .order_by(OutageCorrelation.created_at.desc())
-            .limit(limit)
+            select(OutageCorrelation).order_by(OutageCorrelation.created_at.desc()).limit(limit)
         )
         return list(result.scalars())
 
@@ -36,8 +34,6 @@ class AnalysisRepository:
 
     async def list_assessments(self, limit: int = 100) -> list[RootCauseAssessment]:
         result = await self.session.execute(
-            select(RootCauseAssessment)
-            .order_by(RootCauseAssessment.created_at.desc())
-            .limit(limit)
+            select(RootCauseAssessment).order_by(RootCauseAssessment.created_at.desc()).limit(limit)
         )
         return list(result.scalars())

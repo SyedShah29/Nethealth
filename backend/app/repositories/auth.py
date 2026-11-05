@@ -77,17 +77,13 @@ class RoleRepository:
 
     async def get_by_id(self, role_id: UUID) -> Role | None:
         result = await self.session.execute(
-            select(Role)
-            .where(Role.id == role_id)
-            .options(selectinload(Role.permissions))
+            select(Role).where(Role.id == role_id).options(selectinload(Role.permissions))
         )
         return result.scalar_one_or_none()
 
     async def get_by_name(self, name: str) -> Role | None:
         result = await self.session.execute(
-            select(Role)
-            .where(Role.name == name)
-            .options(selectinload(Role.permissions))
+            select(Role).where(Role.name == name).options(selectinload(Role.permissions))
         )
         return result.scalar_one_or_none()
 

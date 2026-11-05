@@ -98,9 +98,7 @@ class RuleService:
             await self.repository.session.rollback()
             raise AppError("RULE_CONFLICT", "Rule name already exists.", 409) from exc
 
-    async def update_rule(
-        self, rule_id: UUID, data: dict[str, Any], actor_user_id: UUID
-    ) -> Rule:
+    async def update_rule(self, rule_id: UUID, data: dict[str, Any], actor_user_id: UUID) -> Rule:
         rule = await self.get_rule(rule_id)
         for key, value in data.items():
             setattr(rule, key, value)
@@ -119,9 +117,7 @@ class RuleService:
         await self._audit(rule.id, "deleted", actor_user_id)
         await self.repository.session.commit()
 
-    async def evaluate(
-        self, rule_id: UUID, request: RuleEvaluationRequest
-    ) -> RuleEvaluation:
+    async def evaluate(self, rule_id: UUID, request: RuleEvaluationRequest) -> RuleEvaluation:
         rule = await self.get_rule(rule_id)
         if request.entity_type.upper() != rule.entity_type:
             raise AppError(
@@ -174,9 +170,7 @@ class RuleService:
             limit=limit,
         )
 
-    async def _audit(
-        self, rule_id: UUID, action: str, actor_user_id: UUID
-    ) -> None:
+    async def _audit(self, rule_id: UUID, action: str, actor_user_id: UUID) -> None:
         await self.audit.record(
             AuditEventType.CONFIGURATION_CHANGED,
             success=True,

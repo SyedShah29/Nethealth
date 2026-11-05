@@ -152,3 +152,21 @@ Test both:
 
 \- unauthorized requests
 
+For Phases 21-32, test assignment-scoped field workflows, ordered transitions,
+bounded photo validation, permission-filtered search, analytics and CSV exports,
+escalation timing/deduplication, maintenance labeling, dependency-aware incident
+attachment, credential-reference redaction, production database TLS enforcement,
+and migration drift.
+
+For Phases 33-41, run all four approved synthetic subscriber scales and the
+5,000-disconnect storm; test every simulator failure; retain the four exact
+correlation regression scenarios; test status text in addition to color;
+protect the platform-health API; build the production frontend; validate the
+TLS proxy configuration; and complete encrypted database and configuration
+backup tests plus an actual guarded database restore.
+
+Phases 42-45 require evidence from the approved pilot network, authoritative
+router/OLT/RADIUS/tool comparisons, every staged expansion gate, and operator
+acceptance. Simulator or unit-test output must not be substituted for that
+evidence.
+

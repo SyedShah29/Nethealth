@@ -20,9 +20,7 @@ class TopologyNode(Base):
             "'ACCESS', 'OLT', 'PON', 'ONU', 'SUBSCRIBER')",
             name="ck_topology_nodes_type",
         ),
-        UniqueConstraint(
-            "entity_type", "entity_id", name="uq_topology_nodes_entity"
-        ),
+        UniqueConstraint("entity_type", "entity_id", name="uq_topology_nodes_entity"),
         Index("ix_topology_nodes_type_status", "node_type", "status"),
     )
 
@@ -49,12 +47,8 @@ class TopologyNode(Base):
 class TopologyEdge(Base):
     __tablename__ = "topology_edges"
     __table_args__ = (
-        CheckConstraint(
-            "source_node_id <> target_node_id", name="ck_topology_edges_not_self"
-        ),
-        UniqueConstraint(
-            "source_node_id", "target_node_id", name="uq_topology_edges_nodes"
-        ),
+        CheckConstraint("source_node_id <> target_node_id", name="ck_topology_edges_not_self"),
+        UniqueConstraint("source_node_id", "target_node_id", name="uq_topology_edges_nodes"),
         Index("ix_topology_edges_source", "source_node_id"),
         Index("ix_topology_edges_target", "target_node_id"),
         Index("ix_topology_edges_interface", "interface_id"),
@@ -70,9 +64,7 @@ class TopologyEdge(Base):
     interface_id: Mapped[UUID | None] = mapped_column(
         Uuid, ForeignKey("interfaces.id", ondelete="SET NULL")
     )
-    relation: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="DEPENDS_ON"
-    )
+    relation: Mapped[str] = mapped_column(String(32), nullable=False, default="DEPENDS_ON")
     attributes: Mapped[dict[str, Any]] = mapped_column(
         "attributes", JSONB, nullable=False, default=dict
     )

@@ -162,6 +162,25 @@ not transmit until a provider is separately approved and configured. Customer
 360 exposes only the existing privacy-minimized operational subscriber record.
 No frontend route communicates directly with a router, switch, OLT, ONU, or NAS.
 
+Phases 21-32 keep field technicians assignment-scoped and return generic
+not-found responses for other technicians' tasks and photos. Photo uploads are
+restricted by type, filename, and size. Global search runs only in resource
+domains granted to the caller. Collector and notification responses expose a
+boolean configured state instead of secret configuration-key references.
+
+Production configuration rejects unencrypted PostgreSQL connections. Compose
+idempotently provisions a separate read-only backup role before migrations,
+including for existing database volumes. The opt-in backup container runs as
+the PostgreSQL user and encrypts dumps using a key supplied outside source
+control.
+
+The restore tool refuses to target the configured source database and requires
+an explicit override for names outside the disposable `_restore_verify` suffix.
+Configuration backups, including `.env`, are encrypted before being written to
+the backup volume. The production Nginx profile enables TLS 1.2/1.3, HSTS,
+request throttling, and common browser hardening headers while retaining
+loopback-only host publication by default.
+
 \## Local Development Network Exposure
 
 Local development services that must be published to the host must bind

@@ -10,8 +10,10 @@ from app.api.routes.metrics import router as metrics_router
 from app.api.routes.operations import router as operations_router
 from app.api.routes.rules import router as rules_router
 from app.api.routes.subscribers import router as subscribers_router
+from app.api.routes.system import router as system_router
 from app.api.routes.topology import router as topology_router
 from app.api.routes.users import router as users_router
+from app.api.routes.workflows import router as workflows_router
 
 api_router = APIRouter()
 api_router.include_router(health_router, tags=["health"])
@@ -26,3 +28,5 @@ api_router.include_router(topology_router, tags=["topology"])
 api_router.include_router(rules_router, tags=["rules"])
 api_router.include_router(analysis_router, tags=["analysis"])
 api_router.include_router(operations_router, tags=["operations"])
+api_router.include_router(workflows_router, tags=["workflows"])
+api_router.include_router(system_router, tags=["system"])

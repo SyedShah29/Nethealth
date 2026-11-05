@@ -1,6 +1,6 @@
 type StatusCardProps = {
   label: string;
-  status: "healthy" | "loading" | "unavailable";
+  status: "healthy" | "warning" | "critical" | "unknown" | "loading" | "unavailable";
   detail: string;
 };
 

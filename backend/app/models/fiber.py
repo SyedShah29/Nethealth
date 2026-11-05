@@ -24,9 +24,7 @@ from app.db.base import Base
 
 class OLT(Base):
     __tablename__ = "olts"
-    __table_args__ = (
-        CheckConstraint("frame_count >= 0", name="ck_olts_frame_count_nonnegative"),
-    )
+    __table_args__ = (CheckConstraint("frame_count >= 0", name="ck_olts_frame_count_nonnegative"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     device_id: Mapped[UUID] = mapped_column(
@@ -38,9 +36,7 @@ class OLT(Base):
     vendor: Mapped[str] = mapped_column(String(120), nullable=False)
     model: Mapped[str] = mapped_column(String(120), nullable=False)
     frame_count: Mapped[int] = mapped_column(Integer, nullable=False)
-    slot_information: Mapped[dict[str, object]] = mapped_column(
-        JSONB, default=dict, nullable=False
-    )
+    slot_information: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict, nullable=False)
     uplinks: Mapped[list[str]] = mapped_column(JSONB, default=list, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -51,9 +47,7 @@ class OLT(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    pons: Mapped[list[PON]] = relationship(
-        back_populates="olt", cascade="all, delete-orphan"
-    )
+    pons: Mapped[list[PON]] = relationship(back_populates="olt", cascade="all, delete-orphan")
 
 
 class PON(Base):
@@ -62,19 +56,13 @@ class PON(Base):
         CheckConstraint("frame >= 0", name="ck_pons_frame_nonnegative"),
         CheckConstraint("slot >= 0", name="ck_pons_slot_nonnegative"),
         CheckConstraint("port >= 0", name="ck_pons_port_nonnegative"),
-        CheckConstraint(
-            "subscriber_count >= 0", name="ck_pons_subscriber_count_nonnegative"
-        ),
-        CheckConstraint(
-            "configured_capacity > 0", name="ck_pons_configured_capacity_positive"
-        ),
+        CheckConstraint("subscriber_count >= 0", name="ck_pons_subscriber_count_nonnegative"),
+        CheckConstraint("configured_capacity > 0", name="ck_pons_configured_capacity_positive"),
         CheckConstraint(
             "subscriber_count <= configured_capacity",
             name="ck_pons_subscriber_count_capacity",
         ),
-        UniqueConstraint(
-            "olt_id", "frame", "slot", "port", name="uq_pons_olt_frame_slot_port"
-        ),
+        UniqueConstraint("olt_id", "frame", "slot", "port", name="uq_pons_olt_frame_slot_port"),
         UniqueConstraint("id", "olt_id", name="uq_pons_id_olt"),
     )
 
@@ -90,9 +78,7 @@ class PON(Base):
     subscriber_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     configured_capacity: Mapped[int] = mapped_column(Integer, nullable=False)
     olt: Mapped[OLT] = relationship(back_populates="pons")
-    onus: Mapped[list[ONU]] = relationship(
-        back_populates="pon", cascade="all, delete-orphan"
-    )
+    onus: Mapped[list[ONU]] = relationship(back_populates="pon", cascade="all, delete-orphan")
 
 
 class ONU(Base):
@@ -121,9 +107,7 @@ class ONU(Base):
     )
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="UNKNOWN")
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    registration_status: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="UNKNOWN"
-    )
+    registration_status: Mapped[str] = mapped_column(String(32), nullable=False, default="UNKNOWN")
     rx_power: Mapped[float | None] = mapped_column(Float)
     tx_power: Mapped[float | None] = mapped_column(Float)
     temperature: Mapped[float | None] = mapped_column(Float)
@@ -151,8 +135,7 @@ class OpticalThreshold(Base):
             name="ck_optical_thresholds_warning_order",
         ),
         CheckConstraint(
-            "warning_high IS NULL OR critical_high IS NULL "
-            "OR warning_high <= critical_high",
+            "warning_high IS NULL OR critical_high IS NULL OR warning_high <= critical_high",
             name="ck_optical_thresholds_high_order",
         ),
         Index(

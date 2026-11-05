@@ -152,11 +152,7 @@ class SnmpCollector(DeviceCollector):
                 if oid_base is None:
                     continue
                 raw_value = await self._query_oid(f"{oid_base}.{suffix}")
-                value = (
-                    _online_state(raw_value)
-                    if oid_key == "onu_status"
-                    else _float(raw_value)
-                )
+                value = _online_state(raw_value) if oid_key == "onu_status" else _float(raw_value)
                 readings.append(
                     OpticalMetric(
                         self.device_id,
@@ -186,9 +182,7 @@ class SnmpCollector(DeviceCollector):
                 for metric, oid_key in metric_oids.items():
                     oid_base = self.oids.get(oid_key)
                     if oid_base is not None:
-                        session[metric] = _int(
-                            await self._query_oid(f"{oid_base}.{suffix}")
-                        )
+                        session[metric] = _int(await self._query_oid(f"{oid_base}.{suffix}"))
                 sessions.append(session)
             return sessions
         oid = self.oids.get("subscriber_sessions")

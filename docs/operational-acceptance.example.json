@@ -1,0 +1,26 @@
+{
+  "pilot": {
+    "router": "PENDING",
+    "olt": "PENDING",
+    "pons": "PENDING",
+    "subscriber_group": "PENDING",
+    "pipeline_validated": false
+  },
+  "real_data_comparisons": {
+    "router_cli": {"status": "PENDING"},
+    "olt_cli": {"status": "PENDING"},
+    "existing_monitoring": {"status": "PENDING"},
+    "radius": {"status": "PENDING"},
+    "known_outage_history": {"status": "PENDING"}
+  },
+  "expansion": {"completed_stages": []},
+  "acceptance": {
+    "monitoring": "PENDING",
+    "metrics": "PENDING",
+    "intelligence": "PENDING",
+    "operations": "PENDING",
+    "analytics": "PENDING",
+    "security": "PENDING",
+    "platform_reliability": "PENDING"
+  }
+}

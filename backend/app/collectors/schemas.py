@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+
 @dataclass(frozen=True, slots=True)
 class DeviceHealth:
     device_id: UUID
@@ -12,6 +13,7 @@ class DeviceHealth:
     uptime_seconds: int | None = None
     cpu_percent: float | None = None
     memory_percent: float | None = None
+
 
 @dataclass(frozen=True, slots=True)
 class InterfaceHealth:
@@ -24,6 +26,7 @@ class InterfaceHealth:
     errors: int | None = None
     discards: int | None = None
 
+
 @dataclass(frozen=True, slots=True)
 class OpticalMetric:
     device_id: UUID
@@ -34,12 +37,14 @@ class OpticalMetric:
     entity_type: str = "INTERFACE"
     entity_id: str | None = None
 
+
 @dataclass(frozen=True, slots=True)
 class EnvironmentReading:
     device_id: UUID
     metric: str
     value: float | None
     unit: str | None
+
 
 @dataclass(frozen=True, slots=True)
 class SyslogEvent:
@@ -49,6 +54,7 @@ class SyslogEvent:
     severity: int | None
     message: str
     event_type: str
+
 
 @dataclass(frozen=True, slots=True)
 class CollectorStatus:

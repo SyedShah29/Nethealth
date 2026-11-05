@@ -45,9 +45,7 @@ class OperationsRepository:
 
     async def list_anomalies(self, limit: int = 100) -> list[OperationalAnomaly]:
         result = await self.session.execute(
-            select(OperationalAnomaly)
-            .order_by(OperationalAnomaly.detected_at.desc())
-            .limit(limit)
+            select(OperationalAnomaly).order_by(OperationalAnomaly.detected_at.desc()).limit(limit)
         )
         return list(result.scalars())
 
@@ -147,9 +145,7 @@ class OperationsRepository:
 
     async def delivery_exists(self, fingerprint: str) -> bool:
         result = await self.session.execute(
-            select(NotificationDelivery.id).where(
-                NotificationDelivery.fingerprint == fingerprint
-            )
+            select(NotificationDelivery.id).where(NotificationDelivery.fingerprint == fingerprint)
         )
         return result.scalar_one_or_none() is not None
 
@@ -183,9 +179,7 @@ class OperationsRepository:
 
     async def list_capacity_assessments(self, limit: int = 100) -> list[CapacityAssessment]:
         result = await self.session.execute(
-            select(CapacityAssessment)
-            .order_by(CapacityAssessment.evaluated_at.desc())
-            .limit(limit)
+            select(CapacityAssessment).order_by(CapacityAssessment.evaluated_at.desc()).limit(limit)
         )
         return list(result.scalars())
 

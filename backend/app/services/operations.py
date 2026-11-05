@@ -25,6 +25,7 @@ from app.models.operations import (
 )
 from app.repositories.operations import OperationsRepository
 from app.repositories.subscriber import SubscriberRepository
+from app.repositories.workflows import WorkflowRepository
 from app.schemas.operations import (
     AnomalyEvaluationRequest,
     CapacityEvaluationRequest,
@@ -188,31 +189,70 @@ class IncidentService:
         operations: OperationsRepository,
         audit: AuditService | None = None,
         notifications: NotificationService | None = None,
+        workflows: WorkflowRepository | None = None,
     ) -> None:
         self.operations = operations
         self.audit = audit
         self.notifications = notifications
+        self.workflows = workflows
 
     async def create_or_attach(
         self, payload: IncidentCreate, actor_user_id: UUID | None = None
     ) -> Incident:
         entity_type = payload.primary_entity.entity_type.upper()
-        existing = await self.operations.find_active_incident(
+        now = datetime.now(UTC)
+        upstream: Incident | None = None
+        if self.workflows is not None:
+            maintenance = await self.workflows.active_maintenance(
+                entity_type, payload.primary_entity.entity_id, now
+            )
+            if maintenance is not None:
+                payload = payload.model_copy(
+                    update={
+                        "category": "EXPECTED_MAINTENANCE",
+                        "title": f"Expected / maintenance: {payload.title}",
+                        "evidence": [
+                            *payload.evidence,
+                            {
+                                "fact": "maintenance_window",
+                                "value": str(maintenance.id),
+                                "reason": maintenance.reason,
+                            },
+                        ],
+                    }
+                )
+            else:
+                upstream = await self.workflows.upstream_active_incident(
+                    entity_type, payload.primary_entity.entity_id
+                )
+        existing = upstream or await self.operations.find_active_incident(
             payload.category.upper(), entity_type, payload.primary_entity.entity_id
         )
-        now = datetime.now(UTC)
         if existing is not None:
             existing.last_seen = now
             existing.evidence = [*existing.evidence, *payload.evidence]
             existing.affected_subscribers = sorted(
                 set(existing.affected_subscribers) | set(payload.affected_subscribers)
             )
+            topology = {
+                (item.get("entity_type", ""), item.get("entity_id", "")): item
+                for item in [
+                    *existing.affected_topology,
+                    *[item.model_dump() for item in payload.affected_topology],
+                    payload.primary_entity.model_dump(),
+                ]
+            }
+            existing.affected_topology = list(topology.values())
             await self._event(
                 existing,
-                "EVIDENCE_ATTACHED",
-                "New evidence was attached to the existing incident.",
+                "DEPENDENCY_EFFECT_ATTACHED" if upstream else "EVIDENCE_ATTACHED",
+                (
+                    "A downstream effect was attached to the explaining upstream incident."
+                    if upstream
+                    else "New evidence was attached to the existing incident."
+                ),
                 actor_user_id,
-                {"deduplicated": True},
+                {"deduplicated": True, "dependency_aware": upstream is not None},
             )
             await self.operations.commit()
             if self.notifications is not None:
@@ -355,9 +395,7 @@ class QueuedNotificationAdapter:
 
 
 class NotificationService:
-    def __init__(
-        self, operations: OperationsRepository, audit: AuditService | None = None
-    ) -> None:
+    def __init__(self, operations: OperationsRepository, audit: AuditService | None = None) -> None:
         self.operations = operations
         self.audit = audit
 
@@ -489,10 +527,7 @@ def linear_trend(payload: CapacityTrendRequest) -> tuple[float, datetime | None,
     y = [value for _, value in ordered]
     x_mean, y_mean = fmean(x), fmean(y)
     denominator = sum((value - x_mean) ** 2 for value in x)
-    numerator = sum(
-        (xv - x_mean) * (yv - y_mean)
-        for xv, yv in zip(x, y, strict=True)
-    )
+    numerator = sum((xv - x_mean) * (yv - y_mean) for xv, yv in zip(x, y, strict=True))
     slope = numerator / denominator if denominator else 0.0
     intercept = y_mean - slope * x_mean
     projected: datetime | None = None
@@ -510,9 +545,7 @@ def linear_trend(payload: CapacityTrendRequest) -> tuple[float, datetime | None,
 
 
 class CapacityService:
-    def __init__(
-        self, operations: OperationsRepository, audit: AuditService | None = None
-    ) -> None:
+    def __init__(self, operations: OperationsRepository, audit: AuditService | None = None) -> None:
         self.operations = operations
         self.audit = audit
 
@@ -572,11 +605,14 @@ class CapacityService:
                     {"fact": "sample_count", "value": len(payload.samples)},
                     {"fact": "sustained_average", "value": round(sustained, 4)},
                     {"fact": "required_duration_seconds", "value": threshold.duration_seconds},
-                    {"fact": "thresholds", "value": {
-                        "informational": threshold.informational_percent,
-                        "warning": threshold.warning_percent,
-                        "critical": threshold.critical_percent,
-                    }},
+                    {
+                        "fact": "thresholds",
+                        "value": {
+                            "informational": threshold.informational_percent,
+                            "warning": threshold.warning_percent,
+                            "critical": threshold.critical_percent,
+                        },
+                    },
                 ],
             )
         )

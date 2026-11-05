@@ -22,9 +22,7 @@ router = APIRouter(prefix="/metrics")
 @router.get("", response_model=list[MetricSampleResponse | MetricAggregateResponse])
 async def query_metrics(
     service: Annotated[MetricService, Depends(get_metric_service)],
-    _user: Annotated[
-        User, Depends(require_permission(PermissionCode.METRICS_READ.value))
-    ],
+    _user: Annotated[User, Depends(require_permission(PermissionCode.METRICS_READ.value))],
     start: datetime,
     end: datetime,
     entity_type: MetricEntityType | None = None,

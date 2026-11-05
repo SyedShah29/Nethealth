@@ -46,9 +46,11 @@ class DiagnosticsService:
         current_by_name: dict[str, Any] = {}
         for metric in metrics:
             current_by_name.setdefault(metric.metric_name, metric)
+
         def metric_value(name: str) -> float | None:
             metric = current_by_name.get(name)
             return float(metric.value) if metric is not None else None
+
         today = now - timedelta(days=1)
         week = now - timedelta(days=7)
         completed = [item for item in sessions if item.session_end is not None]
@@ -123,14 +125,10 @@ class DiagnosticsService:
             },
             stability={
                 "disconnects_today": sum(
-                    1
-                    for item in sessions
-                    if item.session_end and item.session_end >= today
+                    1 for item in sessions if item.session_end and item.session_end >= today
                 ),
                 "disconnects_last_7_days": sum(
-                    1
-                    for item in sessions
-                    if item.session_end and item.session_end >= week
+                    1 for item in sessions if item.session_end and item.session_end >= week
                 ),
                 "average_session_duration": (
                     sum(durations) / len(durations) if durations else None

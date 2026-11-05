@@ -29,7 +29,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               <Link href="/topology">Topology</Link>
               <Link href="/diagnostics">Diagnostics</Link>
               <Link href="/incidents">Incidents</Link>
+              <Link href="/field-operations">Field operations</Link>
               <Link href="/capacity">Capacity</Link>
+              <Link href="/system">Platform health</Link>
             </nav>
           </header>
           <main>{children}</main>

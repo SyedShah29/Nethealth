@@ -23,9 +23,7 @@ async def database_health(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> DependencyHealthResponse:
     result = await check_database(session)
-    return DependencyHealthResponse(
-        status="healthy", dependency="database", version=result.version
-    )
+    return DependencyHealthResponse(status="healthy", dependency="database", version=result.version)
 
 
 @router.get("/redis", response_model=DependencyHealthResponse)

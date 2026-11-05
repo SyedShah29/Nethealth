@@ -62,9 +62,7 @@ def shared_dimension_evidence(nodes: list[Any]) -> list[dict[str, Any]]:
     for dimension in CORRELATION_DIMENSIONS:
         values = [node.attributes.get(dimension) for node in nodes]
         if values and values[0] is not None and all(value == values[0] for value in values):
-            evidence.append(
-                {"fact": f"shared_{dimension}", "value": values[0]}
-            )
+            evidence.append({"fact": f"shared_{dimension}", "value": values[0]})
     return evidence
 
 
@@ -73,11 +71,7 @@ def lowest_common_failing_ancestor(
 ) -> TopologyNode | None:
     common_ancestors = graph.common_ancestors(node_ids)
     return next(
-        (
-            item
-            for item in common_ancestors
-            if item.status.upper() in UNHEALTHY_STATUSES
-        ),
+        (item for item in common_ancestors if item.status.upper() in UNHEALTHY_STATUSES),
         common_ancestors[0] if common_ancestors else None,
     )
 
@@ -126,18 +120,12 @@ class CorrelationService:
                 )
             affected_nodes.append(node)
 
-        ancestor = lowest_common_failing_ancestor(
-            graph, [item.id for item in affected_nodes]
-        )
+        ancestor = lowest_common_failing_ancestor(graph, [item.id for item in affected_nodes])
         classification = correlation_classification(
             ancestor.node_type if ancestor is not None else None
         )
         downstream_subscribers = (
-            [
-                item
-                for item in graph.descendants(ancestor.id)
-                if item.node_type == "SUBSCRIBER"
-            ]
+            [item for item in graph.descendants(ancestor.id) if item.node_type == "SUBSCRIBER"]
             if ancestor is not None
             else []
         )
@@ -266,13 +254,35 @@ def classify_root_cause(
     utilization_value = signals.get("uplink_utilization_pct", 0)
     utilization = (
         float(utilization_value)
-        if isinstance(utilization_value, (int, float))
-        and not isinstance(utilization_value, bool)
+        if isinstance(utilization_value, (int, float)) and not isinstance(utilization_value, bool)
         else 0.0
     )
-    cases: list[
-        tuple[bool, str, str, list[str], list[str]]
-    ] = [
+    affected_paths_value = signals.get("affected_path_count", 0)
+    affected_paths = (
+        int(affected_paths_value)
+        if isinstance(affected_paths_value, (int, float))
+        and not isinstance(affected_paths_value, bool)
+        else 0
+    )
+    cases: list[tuple[bool, str, str, list[str], list[str]]] = [
+        (
+            signals.get("shared_core_interface") is True
+            and utilization >= 90
+            and signals.get("latency_increasing") is True
+            and affected_paths >= 2,
+            "CORE_CONGESTION",
+            "CRITICAL",
+            [
+                "shared_core_interface",
+                "uplink_utilization_pct",
+                "latency_increasing",
+                "affected_path_count",
+            ],
+            [
+                "Check core interface utilization, errors, and queue drops.",
+                "Check upstream capacity and traffic distribution.",
+            ],
+        ),
         (
             signals.get("olt_reachable") is True
             and signals.get("pon_down") is True
@@ -362,10 +372,7 @@ def classify_root_cause(
             ["Check core reachability and upstream connectivity."],
         ),
     }
-    if (
-        correlation_class in correlation_mapping
-        and correlation_confidence in {"HIGH", "CONFIRMED"}
-    ):
+    if correlation_class in correlation_mapping and correlation_confidence in {"HIGH", "CONFIRMED"}:
         classification, severity, recommendations = correlation_mapping[correlation_class]
         return (
             classification,
@@ -390,9 +397,7 @@ class RootCauseService:
         if request.correlation_id is not None:
             correlation = await self.repository.get_correlation(request.correlation_id)
             if correlation is None:
-                raise AppError(
-                    "CORRELATION_NOT_FOUND", "Correlation result not found.", 404
-                )
+                raise AppError("CORRELATION_NOT_FOUND", "Correlation result not found.", 404)
         classification, severity, evidence, recommended_checks = classify_root_cause(
             request.signals,
             correlation.classification if correlation is not None else None,
@@ -414,9 +419,7 @@ class RootCauseService:
     async def get(self, item_id: UUID) -> RootCauseAssessment:
         assessment = await self.repository.get_assessment(item_id)
         if assessment is None:
-            raise AppError(
-                "ROOT_CAUSE_NOT_FOUND", "Root cause assessment not found.", 404
-            )
+            raise AppError("ROOT_CAUSE_NOT_FOUND", "Root cause assessment not found.", 404)
         return assessment
 
     async def list(self, limit: int) -> list[RootCauseAssessment]:

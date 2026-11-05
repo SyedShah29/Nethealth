@@ -149,9 +149,7 @@ async def list_incidents(
     incident_status: Annotated[IncidentStatus | None, Query(alias="status")] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
 ) -> list[Incident]:
-    return await service.list_incidents(
-        incident_status.value if incident_status else None, limit
-    )
+    return await service.list_incidents(incident_status.value if incident_status else None, limit)
 
 
 @router.get("/incidents/{incident_id}", response_model=IncidentResponse)

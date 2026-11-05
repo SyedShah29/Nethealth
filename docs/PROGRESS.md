@@ -224,18 +224,74 @@ Status: complete. Validated on 2026-09-21.
 - [x] Window, sample count, slope, and assumptions displayed
 - [x] Projection explicitly presented as an estimate, not certainty
 
+## Phases 21-32 — Operational Workflows and Security Hardening
+
+Status: complete. Validated on 2026-09-22.
+
+- [x] Assignment-scoped field technician tickets, actions, notes, and photos
+- [x] Historical operational analytics and six CSV report exports
+- [x] Permission-filtered global operational search
+- [x] Configurable, scheduled notification escalation
+- [x] Maintenance-aware incidents and dependency-aware alert suppression
+- [x] Credential-reference redaction and environment-backed secrets
+- [x] Application/collector network separation and loopback-only host ports
+- [x] Production database TLS enforcement, least-privilege backup role, and encrypted backups
+- [x] Append-only workflow/configuration audit integration and privacy constraints
+
 ## Latest validation
 
-- Backend: 126 tests passed; Ruff passed; strict mypy passed.
-- Frontend: 16 tests passed; ESLint passed; TypeScript and production build passed.
-- Docker backend, migration, and frontend images built successfully.
-- Alembic live migration reached revision `0018` (head), and the global schema
+- Backend: 149 tests passed; Ruff passed; strict mypy passed across 120 source files.
+- Frontend: 18 tests passed; ESLint, TypeScript, and production build passed.
+- Docker backend, migration, frontend, and encrypted-backup images built successfully.
+- Alembic live migration reached revision `0019` (head), and the global schema
   drift check reports no pending upgrade operations.
 - API and frontend returned HTTP 200; PostgreSQL, TimescaleDB, and Redis health passed.
 - Celery Beat dispatched repeated cycles and the worker completed them without errors.
 - UDP syslog was exercised through the loopback-only host binding.
 - Docker exposure audit found only loopback backend, frontend, and syslog publications.
+- Upgrade-safe role provisioning and an encrypted database backup completed successfully.
+- Encrypted database restore and configuration-backup decryption completed successfully.
+- Non-root Nginx TLS runtime, security headers, and production Compose port boundary validated.
+- Platform Health returned live PostgreSQL, Redis, worker, queue, disk, and API telemetry.
+- All four approved scale sizes and the 5,000-disconnect critical scenario passed.
 
-## Next phase
+## Phases 33-40 — Scale, Simulation, Quality, Observability, and Recovery
 
-Phase 21 — Field Technician Module. It has not been started.
+Status: complete. Validated on 2026-09-22.
+
+- [x] 1k, 10k, 50k, and 100k synthetic subscriber scale harness
+- [x] 5,000 disconnects in 30 seconds correlate to one shared PON incident
+- [x] Approved 20-OLT/320-PON/10k-ONU simulator and all ten manual failures
+- [x] Unit, integration, API, collector, rule, correlation, security,
+  authorization, database, frontend, and end-to-end test categories
+- [x] Exact PON, OLT, optical, and shared-core congestion regressions
+- [x] Accessible status language and Platform Health dashboard
+- [x] Collector/worker/queue/database/API/poll/ingestion/disk/notification telemetry
+- [x] Encrypted database and configuration backups
+- [x] Guarded restore script and successful restore verification
+
+## Phase 41 — Production Deployment
+
+Status: implementation-ready; external Linux deployment pending. Revalidated on 2026-09-24.
+
+- [x] Linux Docker Compose deployment configuration
+- [x] Hardened Nginx reverse proxy and TLS configuration
+- [x] Direct application publications removed by the production override
+- [x] Production frontend uses the TLS proxy's same-origin `/api/v1` route
+- [x] Non-root Nginx runtime uses dedicated writable temporary storage
+- [ ] Deploy to the approved production Linux host and validate its certificates
+
+## Phases 42-45 — Pilot, Real Data, Expansion, and Acceptance
+
+Status: blocked on external ISP infrastructure and operator evidence.
+
+- [x] Guarded pilot, comparison, expansion, and acceptance runbook
+- [x] Machine-checkable operational evidence validator
+- [ ] Connect the approved one-router/one-OLT pilot
+- [ ] Compare with router CLI, OLT CLI, monitoring tools, RADIUS, and outage history
+- [ ] Complete POP, multi-POP, region, and full-network expansion gates
+- [ ] Obtain final operational acceptance across all seven areas
+
+## Next task
+
+Deploy Phase 41 on the approved Linux host, then execute the Phase 42 pilot.

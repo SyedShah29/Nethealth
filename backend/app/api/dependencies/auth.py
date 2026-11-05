@@ -20,6 +20,7 @@ from app.repositories.reporting import ReportingRepository
 from app.repositories.rules import RuleRepository
 from app.repositories.subscriber import SubscriberRepository
 from app.repositories.topology import TopologyRepository
+from app.repositories.workflows import WorkflowRepository
 from app.security.passwords import PasswordHasher, get_password_hasher
 from app.services.admin import AdminService
 from app.services.analysis import CorrelationService, RootCauseService
@@ -40,6 +41,14 @@ from app.services.rules import RuleService
 from app.services.subscriber import SubscriberService
 from app.services.topology import TopologyService
 from app.services.users import UserService
+from app.services.workflows import (
+    AnalyticsService,
+    EscalationService,
+    FieldTaskService,
+    MaintenanceService,
+    ReportService,
+    SearchService,
+)
 
 
 def get_auth_service(
@@ -67,6 +76,7 @@ def get_admin_service(
         AuditLogRepository(session),
     )
 
+
 def get_inventory_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> InventoryService:
@@ -74,6 +84,7 @@ def get_inventory_service(
         InventoryRepository(session),
         AuditService(AuditLogRepository(session)),
     )
+
 
 def get_collector_status_repository(
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -133,6 +144,7 @@ def get_rule_service(
             operations,
             audit,
             NotificationService(operations, audit),
+            WorkflowRepository(session),
         ),
     )
 
@@ -151,6 +163,7 @@ def get_correlation_service(
             operations,
             audit,
             NotificationService(operations, audit),
+            WorkflowRepository(session),
         ),
     )
 
@@ -179,7 +192,10 @@ def get_incident_service(
     operations = OperationsRepository(session)
     audit = AuditService(AuditLogRepository(session))
     return IncidentService(
-        operations, audit, NotificationService(operations, audit)
+        operations,
+        audit,
+        NotificationService(operations, audit),
+        WorkflowRepository(session),
     )
 
 
@@ -194,9 +210,7 @@ def get_notification_service(
 def get_capacity_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> CapacityService:
-    return CapacityService(
-        OperationsRepository(session), AuditService(AuditLogRepository(session))
-    )
+    return CapacityService(OperationsRepository(session), AuditService(AuditLogRepository(session)))
 
 
 def get_diagnostics_service(
@@ -214,6 +228,53 @@ def get_dashboard_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> DashboardService:
     return DashboardService(ReportingRepository(session))
+
+
+def get_field_task_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> FieldTaskService:
+    return FieldTaskService(
+        WorkflowRepository(session),
+        OperationsRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
+
+
+def get_analytics_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> AnalyticsService:
+    return AnalyticsService(WorkflowRepository(session))
+
+
+def get_report_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> ReportService:
+    repository = WorkflowRepository(session)
+    return ReportService(repository, AnalyticsService(repository), ReportingRepository(session))
+
+
+def get_search_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SearchService:
+    return SearchService(WorkflowRepository(session))
+
+
+def get_escalation_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> EscalationService:
+    return EscalationService(
+        WorkflowRepository(session),
+        OperationsRepository(session),
+        AuditService(AuditLogRepository(session)),
+    )
+
+
+def get_maintenance_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> MaintenanceService:
+    return MaintenanceService(
+        WorkflowRepository(session), AuditService(AuditLogRepository(session))
+    )
 
 
 def require_trusted_origin(

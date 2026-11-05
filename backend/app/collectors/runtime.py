@@ -122,9 +122,7 @@ async def poll_assignment(assignment_id: UUID, worker: str | None = None) -> dic
             inventory_interfaces = {
                 interface.name: interface
                 for interface in (
-                    await session.execute(
-                        select(Interface).where(Interface.device_id == device.id)
-                    )
+                    await session.execute(select(Interface).where(Interface.device_id == device.id))
                 ).scalars()
             }
             await MetricService(MetricRepository(session)).persist_collection(

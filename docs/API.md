@@ -243,3 +243,27 @@ classification, severity, evidence, affected entities, and recommended checks.
 
 All corresponding routes are also served beneath `/api/v1`. Read and mutation
 permissions are explicit; browser mutations additionally require a trusted origin.
+
+## Phases 21-27 workflow APIs
+
+- `/api/field-tasks` provides assignment-scoped tickets, ordered actions, notes,
+  and bounded JPEG/PNG/WebP evidence uploads.
+- `GET /api/analytics/operations` exposes approved historical measures, and
+  `GET /api/reports/{report_name}.csv` exports the six initial report types.
+- `GET /api/search` searches only domains the caller may read.
+- `/api/escalation-policies` configures ordered escalation steps, evaluated by
+  the scheduler or `/api/escalations/evaluate`.
+- `/api/maintenance-windows` manages audited device/site windows. Matching
+  incidents are labeled `EXPECTED_MAINTENANCE`; downstream failures attach to
+  an active explaining upstream incident.
+
+Collector-profile and notification-channel responses return only
+`credential_configured`; backend configuration-key references are excluded.
+
+## Platform health API
+
+`GET /api/system/platform-health` requires `dashboards:read` and reports
+collector health, worker heartbeat, Celery queue depth, database latency and
+size, API response timing, failed polls, metrics ingestion rate, disk usage, and
+notification failures. It exposes operational measurements only and never
+returns credentials or configuration-key references.

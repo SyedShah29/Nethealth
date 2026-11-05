@@ -3,7 +3,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
 from app.schemas.topology import EntityReference
 
@@ -17,23 +17,33 @@ class HealthCategory(StrEnum):
 
 class HealthScoreRequest(BaseModel):
     components: dict[str, float] = Field(min_length=6, max_length=6)
-    weights: dict[str, int] = Field(default_factory=lambda: {
-        "optical_health": 25,
-        "packet_loss": 20,
-        "latency": 15,
-        "disconnect_frequency": 20,
-        "session_stability": 10,
-        "bandwidth_performance": 10,
-    })
-    thresholds: dict[str, int] = Field(default_factory=lambda: {
-        "healthy": 90, "good": 75, "warning": 50,
-    })
+    weights: dict[str, int] = Field(
+        default_factory=lambda: {
+            "optical_health": 25,
+            "packet_loss": 20,
+            "latency": 15,
+            "disconnect_frequency": 20,
+            "session_stability": 10,
+            "bandwidth_performance": 10,
+        }
+    )
+    thresholds: dict[str, int] = Field(
+        default_factory=lambda: {
+            "healthy": 90,
+            "good": 75,
+            "warning": 50,
+        }
+    )
 
     @model_validator(mode="after")
     def validate_configuration(self) -> "HealthScoreRequest":
         expected = {
-            "optical_health", "packet_loss", "latency", "disconnect_frequency",
-            "session_stability", "bandwidth_performance",
+            "optical_health",
+            "packet_loss",
+            "latency",
+            "disconnect_frequency",
+            "session_stability",
+            "bandwidth_performance",
         }
         if set(self.components) != expected or set(self.weights) != expected:
             raise ValueError("all six health components and weights are required")
@@ -175,7 +185,13 @@ class NotificationChannelCreate(BaseModel):
 
 class NotificationChannelResponse(NotificationChannelCreate):
     model_config = ConfigDict(from_attributes=True)
+    configuration_key: str | None = Field(default=None, exclude=True)
     id: UUID
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def credential_configured(self) -> bool:
+        return self.configuration_key is not None
 
 
 class NotificationRuleCreate(BaseModel):
@@ -211,11 +227,7 @@ class CapacityThresholdCreate(BaseModel):
     @model_validator(mode="after")
     def validate_thresholds(self) -> "CapacityThresholdCreate":
         ordered = (
-            0
-            <= self.informational_percent
-            < self.warning_percent
-            < self.critical_percent
-            <= 100
+            0 <= self.informational_percent < self.warning_percent < self.critical_percent <= 100
         )
         if not ordered:
             raise ValueError("capacity thresholds must be ordered within 0-100")

@@ -277,3 +277,28 @@ Capacity evaluation uses sustained samples and configurable thresholds. Trend
 projection uses ordinary least-squares and always returns its assumptions; it is
 presented as an estimate. The frontend continues to communicate only with the
 backend API and never with infrastructure management interfaces.
+
+Phases 21-32 add operational workflows around the same service and repository
+boundaries. Field technicians see only tasks assigned to them. Historical
+analytics, CSV reports, and global search read existing operational records and
+filter search domains by the caller's permissions. Escalation evaluation runs
+on the Celery scheduler through provider-independent notification adapters.
+
+Maintenance windows are resolved before incident creation. Expected failures
+are labeled as maintenance-related, and dependency-aware suppression attaches
+downstream effects to an existing upstream incident. Application and collector
+network separation remains intact; host publications remain loopback-only.
+Production database roles are provisioned idempotently before migrations so
+existing volumes receive the restricted backup role. The opt-in, non-root
+backup image encrypts dumps with a key supplied outside source control.
+
+Phases 33-41 add a deterministic synthetic network and scale harness, permanent
+correlation regression scenarios, in-process API timing, worker heartbeats, and
+an authenticated Platform Health view. Observability reads operational database
+and Redis state but does not communicate with ISP infrastructure.
+
+Database backups use encrypted PostgreSQL custom-format dumps. Restore tooling
+refuses the source database and defaults to a disposable verification database.
+Configuration backups encrypt deployment files, including the ignored runtime
+environment file. The production Compose override places a hardened Nginx TLS
+reverse proxy on the edge network and removes direct application publications.

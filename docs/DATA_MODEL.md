@@ -298,3 +298,15 @@ window, sample count, slope, projected crossing, and disclosed assumptions.
 
 Migrations `0015` through `0018` add these tables and seed the approved default
 70/80/90 percent sustained-load threshold configuration.
+
+## Phases 21-27 operational workflows
+
+`FieldTask` links one incident to its assigned technician and retains the
+privacy-minimized subscriber/fiber context, ordered workflow timestamps,
+recommended checks, and notes. `FieldPhoto` stores bounded image evidence, its
+digest, and uploader. Technicians can access only their assigned tasks.
+
+`EscalationPolicy` stores ordered delay, team, and notification-channel steps.
+`EscalationEvent` uniquely records each incident/policy/step delivery.
+`MaintenanceWindow` covers one device or site over a bounded time range.
+Migration `0019` adds these entities and uses existing field-work permissions.

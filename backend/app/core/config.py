@@ -2,7 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from urllib.parse import quote_plus
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     database_user: str = "nethealth_app"
     database_password: SecretStr
     database_pool_size: int = Field(default=5, ge=1, le=50)
+    postgres_sslmode: Literal["disable", "require", "verify-ca", "verify-full"] = "disable"
 
     redis_host: str = "localhost"
     redis_port: int = 6379
@@ -58,16 +59,23 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         password = quote_plus(self.database_password.get_secret_value())
         user = quote_plus(self.database_user)
-        return (
+        url = (
             f"postgresql+asyncpg://{user}:{password}@"
             f"{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
+        return f"{url}?ssl={self.postgres_sslmode}"
 
     @property
     def redis_url(self) -> str:
         password = self.redis_password.get_secret_value()
         credentials = f":{quote_plus(password)}@"
         return f"redis://{credentials}{self.redis_host}:{self.redis_port}/{self.redis_db}"
+
+    @model_validator(mode="after")
+    def require_encrypted_production_database(self) -> "Settings":
+        if self.app_env == "production" and self.postgres_sslmode == "disable":
+            raise ValueError("production PostgreSQL connections must use TLS")
+        return self
 
 
 @lru_cache

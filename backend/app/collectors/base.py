@@ -3,8 +3,10 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 from app.collectors.schemas import DeviceHealth, EnvironmentReading, InterfaceHealth, OpticalMetric
 
+
 class DeviceCollector(ABC):
     """Common read-only contract implemented by protocol/vendor collectors."""
+
     collector_type: str
 
     def __init__(self, device_id: UUID) -> None:

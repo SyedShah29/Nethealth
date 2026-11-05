@@ -12,6 +12,8 @@ services:
       POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:?Set POSTGRES_MIGRATION_PASSWORD in .env}
       DATABASE_USER: ${DATABASE_USER:-nethealth_app}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_BACKUP_USER: ${POSTGRES_BACKUP_USER:-nethealth_backup}
+      POSTGRES_BACKUP_PASSWORD: ${POSTGRES_BACKUP_PASSWORD:-${POSTGRES_MIGRATION_PASSWORD}}
     entrypoint:
       - sh
       - -c
@@ -49,6 +51,36 @@ services:
     networks:
       - private
 
+  provision:
+    image: timescale/timescaledb:2.19.3-pg16
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-nethealth_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD in .env}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-nethealth_migrator}
+      POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:?Set POSTGRES_MIGRATION_PASSWORD in .env}
+      DATABASE_USER: ${DATABASE_USER:-nethealth_app}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_BACKUP_USER: ${POSTGRES_BACKUP_USER:-nethealth_backup}
+      POSTGRES_BACKUP_PASSWORD: ${POSTGRES_BACKUP_PASSWORD:-${POSTGRES_MIGRATION_PASSWORD}}
+    entrypoint: ["/scripts/init-roles.sh"]
+    volumes:
+      - ./docker/postgres/init-roles.sh:/scripts/init-roles.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
   migrate:
     build:
       context: ./backend
@@ -63,6 +95,7 @@ services:
       DATABASE_USER: ${POSTGRES_MIGRATION_USER:-nethealth_migrator}
       DATABASE_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD:?Set POSTGRES_MIGRATION_PASSWORD in .env}
       DATABASE_POOL_SIZE: 1
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-disable}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: ${REDIS_DB:-0}
@@ -73,8 +106,8 @@ services:
       CORRELATION_WINDOW_SECONDS: ${CORRELATION_WINDOW_SECONDS:-60}
     command: ["alembic", "upgrade", "head"]
     depends_on:
-      postgres:
-        condition: service_healthy
+      provision:
+        condition: service_completed_successfully
     restart: "no"
     read_only: true
     tmpfs:
@@ -100,6 +133,7 @@ services:
       DATABASE_USER: ${DATABASE_USER:-nethealth_app}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
       DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-5}
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-disable}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: ${REDIS_DB:-0}
@@ -260,9 +294,92 @@ services:
     networks:
       - edge
 
+  backup:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile.backup
+    profiles: ["tools"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      POSTGRES_BACKUP_USER: ${POSTGRES_BACKUP_USER:-nethealth_backup}
+      POSTGRES_BACKUP_PASSWORD: ${POSTGRES_BACKUP_PASSWORD:-${POSTGRES_MIGRATION_PASSWORD}}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+    entrypoint: ["/scripts/backup-encrypted.sh"]
+    volumes:
+      - encrypted_backups:/backups
+      - ./docker/postgres/backup-encrypted.sh:/scripts/backup-encrypted.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
+  config-backup:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile.backup
+    profiles: ["tools"]
+    environment:
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+    entrypoint: ["/scripts/backup-configuration.sh"]
+    volumes:
+      - encrypted_backups:/backups
+      - ./docker/postgres/backup-configuration.sh:/scripts/backup-configuration.sh:ro
+      - ./.env:/config-source/.env:ro
+      - ./docker-compose.yml:/config-source/docker-compose.yml:ro
+      - ./.env.example:/config-source/.env.example:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
+  restore-verify:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile.backup
+    profiles: ["tools"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nethealth}
+      POSTGRES_RESTORE_USER: ${POSTGRES_ADMIN_USER:-nethealth_admin}
+      POSTGRES_RESTORE_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD in .env}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-}
+      BACKUP_FILE: ${BACKUP_FILE:-/backups/latest.dump.enc}
+      RESTORE_DATABASE: ${RESTORE_DATABASE:-nethealth_restore_verify}
+      RESTORE_REPLACE: ${RESTORE_REPLACE:-false}
+      ALLOW_PRODUCTION_RESTORE: ${ALLOW_PRODUCTION_RESTORE:-false}
+    entrypoint: ["/scripts/restore-encrypted.sh"]
+    volumes:
+      - encrypted_backups:/backups
+      - ./docker/postgres/restore-encrypted.sh:/scripts/restore-encrypted.sh:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - private
+
 volumes:
   postgres_data:
   redis_data:
+  encrypted_backups:
 
 networks:
   edge:

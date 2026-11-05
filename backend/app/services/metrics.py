@@ -42,9 +42,7 @@ class MetricService:
         for reading in interfaces:
             interface = inventory_interfaces.get(reading.name)
             entity_id = (
-                str(interface.id)
-                if interface is not None
-                else f"{health.device_id}:{reading.name}"
+                str(interface.id) if interface is not None else f"{health.device_id}:{reading.name}"
             )
             samples.extend(
                 await self._interface_samples(
@@ -109,15 +107,17 @@ class MetricService:
         return [
             sample
             for name, (value, unit) in values.items()
-            if (sample := self._sample(
-                timestamp,
-                MetricEntityType.DEVICE,
-                str(health.device_id),
-                name,
-                value,
-                unit,
-                source,
-            ))
+            if (
+                sample := self._sample(
+                    timestamp,
+                    MetricEntityType.DEVICE,
+                    str(health.device_id),
+                    name,
+                    value,
+                    unit,
+                    source,
+                )
+            )
             is not None
         ]
 
@@ -214,9 +214,7 @@ class MetricService:
             if entity_id is None:
                 interface = interfaces.get(reading.interface_name)
                 entity_id = (
-                    str(interface.id)
-                    if interface
-                    else f"{device_id}:{reading.interface_name}"
+                    str(interface.id) if interface else f"{device_id}:{reading.interface_name}"
                 )
             sample = self._sample(
                 timestamp,

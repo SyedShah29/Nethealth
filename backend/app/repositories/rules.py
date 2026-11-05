@@ -16,6 +16,7 @@ class RuleRepository:
             statement = statement.where(Rule.enabled == enabled)
         result = await self.session.execute(statement.order_by(Rule.name))
         return list(result.scalars())
+
     async def get_rule(self, rule_id: UUID) -> Rule | None:
         return await self.session.get(Rule, rule_id)
 

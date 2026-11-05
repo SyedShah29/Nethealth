@@ -56,7 +56,11 @@ class SnmpUdpTransport:
             )
             values: list[tuple[str, object]] = []
             async for indication, status, _, bindings in walk_cmd(
-                SnmpEngine(), auth, target, ContextData(), ObjectType(ObjectIdentity(oid)),
+                SnmpEngine(),
+                auth,
+                target,
+                ContextData(),
+                ObjectType(ObjectIdentity(oid)),
                 lexicographicMode=False,
             ):
                 if indication or status:
@@ -83,10 +87,18 @@ def _authentication(profile: SnmpProfile) -> Any:
 
     if profile.version == "2c":
         return CommunityData(profile.username)
-    auth_protocols = {None: usmNoAuthProtocol, "NONE": usmNoAuthProtocol,
-                      "MD5": usmHMACMD5AuthProtocol, "SHA": usmHMACSHAAuthProtocol}
-    privacy_protocols = {None: usmNoPrivProtocol, "NONE": usmNoPrivProtocol,
-                         "DES": usmDESPrivProtocol, "AES": usmAesCfb128Protocol}
+    auth_protocols = {
+        None: usmNoAuthProtocol,
+        "NONE": usmNoAuthProtocol,
+        "MD5": usmHMACMD5AuthProtocol,
+        "SHA": usmHMACSHAAuthProtocol,
+    }
+    privacy_protocols = {
+        None: usmNoPrivProtocol,
+        "NONE": usmNoPrivProtocol,
+        "DES": usmDESPrivProtocol,
+        "AES": usmAesCfb128Protocol,
+    }
     auth_key = profile.auth_protocol.upper() if profile.auth_protocol else None
     privacy_key = profile.privacy_protocol.upper() if profile.privacy_protocol else None
     if auth_key not in auth_protocols or privacy_key not in privacy_protocols:
@@ -98,6 +110,9 @@ def _authentication(profile: SnmpProfile) -> Any:
     if privacy_key not in {None, "NONE"} and auth_key in {None, "NONE"}:
         raise CollectorConfigurationError("SNMP privacy requires authentication.")
     return UsmUserData(
-        profile.username, profile.auth_secret, profile.privacy_secret,
-        authProtocol=auth_protocols[auth_key], privProtocol=privacy_protocols[privacy_key],
+        profile.username,
+        profile.auth_secret,
+        profile.privacy_secret,
+        authProtocol=auth_protocols[auth_key],
+        privProtocol=privacy_protocols[privacy_key],
     )

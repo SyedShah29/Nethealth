@@ -48,13 +48,9 @@ class SubscriberRepository:
     async def get(self, subscriber_id: str) -> Subscriber | None:
         return await self.session.get(Subscriber, subscriber_id)
 
-    async def get_by_external_reference(
-        self, external_reference: str
-    ) -> Subscriber | None:
+    async def get_by_external_reference(self, external_reference: str) -> Subscriber | None:
         result = await self.session.execute(
-            select(Subscriber).where(
-                Subscriber.external_reference == external_reference
-            )
+            select(Subscriber).where(Subscriber.external_reference == external_reference)
         )
         return result.scalar_one_or_none()
 

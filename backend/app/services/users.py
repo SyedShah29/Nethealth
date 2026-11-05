@@ -91,9 +91,10 @@ class UserService:
         if user.id == actor.id and active is False:
             raise AppError("SELF_DISABLE_FORBIDDEN", "You cannot disable your own account.", 400)
 
-        removes_active_admin = user.active and user.role.name == RoleName.ADMIN.value and (
-            active is False
-            or (role_name is not None and role_name != RoleName.ADMIN)
+        removes_active_admin = (
+            user.active
+            and user.role.name == RoleName.ADMIN.value
+            and (active is False or (role_name is not None and role_name != RoleName.ADMIN))
         )
         if removes_active_admin:
             await self.users.lock_active_admins()

@@ -178,9 +178,7 @@ class FiberService:
             raise AppError("ONU_NOT_FOUND", "ONU not found.", 404)
         return context
 
-    async def _threshold_map(
-        self, olt: OLT, pon: PON
-    ) -> dict[str, OpticalThreshold]:
+    async def _threshold_map(self, olt: OLT, pon: PON) -> dict[str, OpticalThreshold]:
         matches = await self.thresholds.matching(
             vendor=olt.vendor,
             technology=pon.technology,
@@ -226,10 +224,7 @@ class OpticalThresholdService:
         actor_user_id: UUID,
     ) -> OpticalThreshold:
         threshold = await self._get(threshold_id)
-        values = {
-            field: getattr(threshold, field)
-            for field in OpticalThresholdCreate.model_fields
-        }
+        values = {field: getattr(threshold, field) for field in OpticalThresholdCreate.model_fields}
         values.update(payload.model_dump(exclude_unset=True))
         validated = OpticalThresholdCreate.model_validate(values)
         try:
@@ -263,9 +258,7 @@ class OpticalThresholdService:
             )
         return threshold
 
-    async def _audit(
-        self, threshold_id: UUID, action: str, actor_user_id: UUID
-    ) -> None:
+    async def _audit(self, threshold_id: UUID, action: str, actor_user_id: UUID) -> None:
         await self.audit.record(
             AuditEventType.THRESHOLD_CHANGED,
             success=True,
@@ -278,25 +271,15 @@ class OpticalThresholdService:
         )
 
 
-def classify(
-    value: float | None, threshold: OpticalThreshold | None
-) -> OpticalClassification:
+def classify(value: float | None, threshold: OpticalThreshold | None) -> OpticalClassification:
     if value is None or threshold is None:
         return OpticalClassification.UNKNOWN
-    if (
-        threshold.critical_low is not None
-        and value <= threshold.critical_low
-    ) or (
-        threshold.critical_high is not None
-        and value >= threshold.critical_high
+    if (threshold.critical_low is not None and value <= threshold.critical_low) or (
+        threshold.critical_high is not None and value >= threshold.critical_high
     ):
         return OpticalClassification.CRITICAL
-    if (
-        threshold.warning_low is not None
-        and value <= threshold.warning_low
-    ) or (
-        threshold.warning_high is not None
-        and value >= threshold.warning_high
+    if (threshold.warning_low is not None and value <= threshold.warning_low) or (
+        threshold.warning_high is not None and value >= threshold.warning_high
     ):
         return OpticalClassification.WARNING
     return OpticalClassification.GOOD

@@ -62,9 +62,7 @@ async def update_node(
     service: Annotated[TopologyService, Depends(get_topology_service)],
     user: Annotated[User, Depends(manage_topology)],
 ) -> TopologyNode:
-    return await service.update_node(
-        node_id, payload.model_dump(exclude_unset=True), user.id
-    )
+    return await service.update_node(node_id, payload.model_dump(exclude_unset=True), user.id)
 
 
 @router.delete(
