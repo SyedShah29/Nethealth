@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS builder
+FROM python:3.15-slim AS builder
 
 WORKDIR /build
 COPY pyproject.toml ./
@@ -6,7 +6,7 @@ RUN mkdir app \
     && touch app/__init__.py \
     && pip install --no-cache-dir --prefix=/install .
 
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
