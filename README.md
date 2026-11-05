@@ -15,6 +15,10 @@
 
 </div>
 
+<div align="center">
+  <sub>Designed and built by <strong>Syed Hasaan Shah</strong>.</sub>
+</div>
+
 ---
 
 ## What is NetHealth?
@@ -325,6 +329,12 @@ npm run build
 ```
 
 The same checks run in GitHub Actions on every push and pull request.
+
+---
+
+## Author
+
+Built end-to-end by **Syed Hasaan Shah**.
 
 ---
 
